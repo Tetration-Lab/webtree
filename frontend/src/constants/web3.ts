@@ -5,7 +5,12 @@ import { createWeb3Modal } from "@web3modal/wagmi";
 import { DESCRIPTION, TITLE } from "./texts";
 import theme from "@/themes";
 import { publicProvider } from "wagmi/providers/public";
-import { goerli } from "viem/chains";
+import {
+  baseSepolia,
+  mantleTestnet,
+  polygonZkEvmTestnet,
+  scrollSepolia,
+} from "viem/chains";
 import { Address, Hex } from "viem";
 
 const metadata = {
@@ -17,7 +22,35 @@ const metadata = {
 
 export const chains = [
   {
-    ...goerli,
+    ...scrollSepolia,
+    world: {
+      name: "Scroll Land",
+      description:
+        "Scroll land is a medieval world full of scrolls and path of truths.",
+    },
+  },
+  {
+    ...mantleTestnet,
+    world: {
+      name: "Mantle",
+      description:
+        "Mantle is a brillant futuristic world full of neon and plasma.",
+    },
+  },
+  {
+    ...polygonZkEvmTestnet,
+    world: {
+      name: "Polygon",
+      description: "Polygon is a fantasy world full of mystic wizards.",
+    },
+  },
+  {
+    ...baseSepolia,
+    world: {
+      name: "Base",
+      description:
+        "Base is a world of the moonlight, full of elfs and a majestic world tree.",
+    },
   },
 ];
 

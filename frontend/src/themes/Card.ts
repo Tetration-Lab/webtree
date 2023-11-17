@@ -7,6 +7,7 @@ const { definePartsStyle, defineMultiStyleConfig } =
 const baseStyle = definePartsStyle({
   container: {
     borderRadius: "xl",
+    p: 4,
   },
 });
 

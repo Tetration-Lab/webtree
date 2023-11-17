@@ -113,8 +113,8 @@ const theme = extendTheme({
   },
 
   fonts: {
-    heading: "Inconsolata",
-    body: "Inconsolata",
+    heading: "Spectral",
+    body: "Spectral",
   },
 
   breakpoints,
@@ -122,7 +122,6 @@ const theme = extendTheme({
   styles: {
     global: (_props: any) => ({
       body: {
-        bg: "#05060E",
         height: "100dvh",
         overflowX: "hidden",
         lineHeight: "base",

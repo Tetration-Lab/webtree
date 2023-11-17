@@ -8,14 +8,3 @@ export const formatAddress = (address?: string | Address) => {
   const addr = address?.toLowerCase();
   return `${addr?.slice(0, 6)}..${addr?.slice(-4)}`;
 };
-
-export const fetchEnsNames = async (
-  addresses: Address[]
-): Promise<(string | null)[]> => {
-  const client = wagmiConfig.getPublicClient({
-    chainId: 1,
-  });
-  return await Promise.all(
-    addresses.map((a) => client.getEnsName({ address: a }))
-  );
-};

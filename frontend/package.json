@@ -13,7 +13,8 @@
     "@chakra-ui/react": "^2.7.1",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
-    "@fontsource/inconsolata": "^5.0.15",
+    "@noir-lang/backend_barretenberg": "^0.19.2",
+    "@noir-lang/noir_js": "^0.19.2",
     "@tanstack/react-query": "^4.36.1",
     "@types/node": "20.2.3",
     "@types/react": "18.2.6",
@@ -34,7 +35,7 @@
     "react-hook-form": "^7.47.0",
     "react-icons": "^4.11.0",
     "typescript": "5.0.4",
-    "viem": "^1.16.5",
+    "viem": "^1.19.3",
     "wagmi": "^1.4.3",
     "zustand": "^4.4.3"
   },

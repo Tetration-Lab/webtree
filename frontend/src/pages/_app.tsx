@@ -10,31 +10,30 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleAnalytics } from "nextjs-google-analytics";
 import { usePrices } from "@/stores/usePrices";
 
-// Font
-import "@fontsource/inconsolata/400.css";
-import "@fontsource/inconsolata/500.css";
-import "@fontsource/inconsolata/600.css";
-import "@fontsource/inconsolata/700.css";
-
 const client = new QueryClient();
 
 const App = ({ Component, pageProps }: AppProps) => {
   const [showChild, setShowChild] = useState(false);
-  const fetchPrice = usePrices((p) => p.fetchPrice);
 
   useEffect(() => {
     setShowChild(true);
   }, []);
-
-  useEffect(() => {
-    fetchPrice();
-  }, [fetchPrice]);
 
   return (
     <>
       <Head>
         <title key="title">{TITLE}</title>
         <meta name="description" content={DESCRIPTION} key="description" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin=""
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Spectral:wght@300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
       </Head>
       {typeof window === "undefined" || !showChild ? (
         <></>

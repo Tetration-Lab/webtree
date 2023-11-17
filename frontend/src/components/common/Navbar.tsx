@@ -37,45 +37,39 @@ export const Navbar = () => {
   const { isOpen, onToggle } = useDisclosure();
 
   return (
-    <>
-      <Box mt={-2}>
-        <Flex minH="100px" align="center">
-          <Flex
-            flex={{ base: 1, md: "auto" }}
-            ml={{ base: -2 }}
-            display={{ base: "flex", md: "none" }}
-          >
-            <IconButton
-              onClick={onToggle}
-              icon={
-                isOpen ? (
-                  <CloseIcon w={3} h={3} />
-                ) : (
-                  <HamburgerIcon w={5} h={5} />
-                )
-              }
-              variant="ghost"
-              aria-label="Toggle Navigation"
-            />
-          </Flex>
-          <HStack
-            flex={{ base: 1 }}
-            justify={{ base: "center", md: "start" }}
-            display={{ base: "none", md: "flex" }}
-            align="center"
-            spacing={10}
-          >
-            <Title />
-            <DesktopNav />
-          </HStack>
-          <w3m-button size="sm" />
+    <Box mt={-2} h="fit-content">
+      <Flex minH="100px" align="center">
+        <Flex
+          flex={{ base: 1, md: "auto" }}
+          ml={{ base: -2 }}
+          display={{ base: "flex", md: "none" }}
+        >
+          <IconButton
+            onClick={onToggle}
+            icon={
+              isOpen ? <CloseIcon w={3} h={3} /> : <HamburgerIcon w={5} h={5} />
+            }
+            variant="ghost"
+            aria-label="Toggle Navigation"
+          />
         </Flex>
+        <HStack
+          flex={{ base: 1 }}
+          justify={{ base: "center", md: "start" }}
+          display={{ base: "none", md: "flex" }}
+          align="center"
+          spacing={10}
+        >
+          <Title />
+          <DesktopNav />
+        </HStack>
+        <w3m-button size="sm" />
+      </Flex>
 
-        <Collapse in={isOpen} animateOpacity>
-          <MobileNav />
-        </Collapse>
-      </Box>
-    </>
+      <Collapse in={isOpen} animateOpacity>
+        <MobileNav />
+      </Collapse>
+    </Box>
   );
 };
 
