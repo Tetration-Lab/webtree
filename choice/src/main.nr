@@ -10,7 +10,7 @@ fn main(
     public_seed: pub Field,
     public_commitment: pub Field,
     preimage: Field,
-    private_choices: pub [Field;5],
+    private_choices: [Field;5],
 ) -> pub [(Point, Point); 4] {
 
     let bjj = baby_jubjub().curve;
