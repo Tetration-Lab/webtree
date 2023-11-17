@@ -69,4 +69,13 @@ fn main(
 
 #[test]
 fn test() {
+    let bjj = baby_jubjub().curve;
+    let pk = bjj.mul(69, bjj.gen);
+    let gpk = bjj.mul(420, bjj.gen);
+    let r = [1,2,3,4];
+    let seed = 1337;
+    let preimage = 7331;
+    let commitment = mimc_bn254([preimage]);
+    let choices = [0,1,1,0,1];
+    let _ = main(pk, gpk, r, seed, commitment, preimage, choices);
 }
