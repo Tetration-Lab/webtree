@@ -1,38 +1,63 @@
-import {
-  Text,
-  Heading,
-  Stack,
-  Wrap,
-  Button,
-  Tooltip,
-  Center,
-} from "@chakra-ui/react";
-import { Section, Navbar, Footer, AppHeader } from "@/components/common";
+import { Navbar, Section } from "@/components/common";
 import { useAccount, useChainId, useSwitchNetwork } from "wagmi";
 import { chains, web3Modal } from "@/constants/web3";
 import _ from "lodash";
-import { DESCRIPTION, TITLE } from "@/constants/texts";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SelectServer } from "@/components/SelectServer";
+import { Welcome } from "@/components/Welcome";
+import { Stack } from "@chakra-ui/react";
+import { usePlayer } from "@/stores/usePlayer";
+import { GeneratePassword } from "@/components/GeneratePassword";
 
 export const HomePage = () => {
   const { isLoading: isSwitching } = useSwitchNetwork();
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const chainId = useChainId();
+
+  const { key, setKey, chainId: selectedChainId } = usePlayer();
+
   const correctlyConnected = useMemo(
-    () => !isSwitching && isConnected && chains.some((c) => c.id === chainId),
-    [isSwitching, isConnected, chainId]
+    () =>
+      !isSwitching &&
+      isConnected &&
+      chains.some((c) => c.id === chainId) &&
+      chainId === selectedChainId,
+    [isSwitching, isConnected, chainId, selectedChainId, chains]
   );
+
+  const [next, setNext] = useState(false);
+
+  useEffect(() => {
+    if (!address || key?.address !== address) {
+      setKey(null);
+    }
+  }, [address, key?.address]);
 
   return (
     <>
-      <AppHeader title="Bounties" />
       <Section>
         <Navbar />
         <Stack justify="center" align="center" flexGrow={1}>
-          <SelectServer />
+          {!next || !isConnected ? (
+            <Welcome
+              onPlay={async () => {
+                setNext(true);
+                if (!isConnected)
+                  await web3Modal.open({
+                    view: "Connect",
+                  });
+              }}
+            />
+          ) : !correctlyConnected ? (
+            <SelectServer />
+          ) : key === null ? (
+            <>
+              <GeneratePassword />
+            </>
+          ) : (
+            <></>
+          )}
         </Stack>
-        <Footer />
       </Section>
     </>
   );

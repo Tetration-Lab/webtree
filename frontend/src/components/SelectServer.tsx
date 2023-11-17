@@ -3,28 +3,30 @@ import {
   Card,
   Divider,
   HStack,
+  Heading,
   SimpleGrid,
   Stack,
   Text,
+  useToast,
 } from "@chakra-ui/react";
-import { useAccount, useChainId, useSwitchNetwork } from "wagmi";
+import { useChainId, useSwitchNetwork } from "wagmi";
+import { AppHeader } from "./common";
+import { usePlayer } from "@/stores/usePlayer";
 
 export const SelectServer = () => {
-  const {
-    switchNetwork,
-    isLoading: isSwitching,
-    pendingChainId,
-  } = useSwitchNetwork();
-  const { isConnected } = useAccount();
+  const toast = useToast();
+
+  const { switchNetwork } = useSwitchNetwork();
   const chainId = useChainId();
+
+  const { setChainId } = usePlayer();
 
   return (
     <>
+      <AppHeader title="Select Server" />
       <Card as={Stack}>
         <HStack justify="center">
-          <Text fontWeight="bold" fontSize="2xl">
-            Select World
-          </Text>
+          <Heading>Select World</Heading>
         </HStack>
         <Text align="center">
           Select world for you to join. <br />
@@ -50,7 +52,38 @@ export const SelectServer = () => {
                 _active: { transform: "scale(1.01)" },
               }}
               transition="all 0.2s ease-in-out"
+              onClick={async () => {
+                try {
+                  setChainId(chain.id);
+                  if (chain.id === chainId) return;
+                  else if (switchNetwork) switchNetwork(chain.id);
+                } catch (error: any) {
+                  toast({
+                    status: "error",
+                    title: "Error",
+                    description: error.message,
+                  });
+                }
+              }}
             >
+              {chainId === chain.id && (
+                <Text
+                  pos="absolute"
+                  top={0}
+                  right={0}
+                  bg="primary.500"
+                  roundedTopRight="lg"
+                  roundedBottomLeft="xl"
+                  p={1}
+                  as="b"
+                  fontSize={{
+                    base: "sm",
+                    md: "md",
+                  }}
+                >
+                  Currently Connected
+                </Text>
+              )}
               <Stack
                 pos="absolute"
                 bottom={0}

@@ -113,8 +113,8 @@ const theme = extendTheme({
   },
 
   fonts: {
-    heading: "Spectral",
-    body: "Spectral",
+    heading: "Glass Antiqua",
+    body: "Glass Antiqua",
   },
 
   breakpoints,
