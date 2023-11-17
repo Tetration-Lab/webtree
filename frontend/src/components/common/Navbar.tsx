@@ -44,14 +44,17 @@ export const Navbar = () => {
           ml={{ base: -2 }}
           display={{ base: "flex", md: "none" }}
         >
-          <IconButton
-            onClick={onToggle}
-            icon={
-              isOpen ? <CloseIcon w={3} h={3} /> : <HamburgerIcon w={5} h={5} />
-            }
-            variant="ghost"
-            aria-label="Toggle Navigation"
-          />
+          <Text fontSize="2xl">🌳</Text>
+          {
+            //<IconButton
+            //onClick={onToggle}
+            //icon={
+            //isOpen ? <CloseIcon w={3} h={3} /> : <HamburgerIcon w={5} h={5} />
+            //}
+            //variant="ghost"
+            //aria-label="Toggle Navigation"
+            ///>
+          }
         </Flex>
         <HStack
           flex={{ base: 1 }}
@@ -61,7 +64,9 @@ export const Navbar = () => {
           spacing={10}
         >
           <Title />
-          <DesktopNav />
+          {
+            //<DesktopNav />
+          }
         </HStack>
         <w3m-button size="sm" />
       </Flex>

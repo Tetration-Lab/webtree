@@ -40,6 +40,7 @@ export const seedToChoices = (seed: Hex) => {
     return {
       plus,
       minus,
+      stats,
     };
   });
 
