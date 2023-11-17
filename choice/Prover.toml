@@ -1,0 +1,13 @@
+elgamal_randomness = ["1", "2", "3", "4"]
+preimage = "7331"
+private_choices = ["1", "1", "1", "1", "1"]
+public_commitment = "0x20c32ae0c61ead8d123604e7eb2b5455ed5ddea00811b71b2d06cb7dbf52c1c9"
+public_seed = "12"
+
+[elgamal_pk]
+x = "0x2301193687fc5fa67af47de5db220d87361e62dbe0492ad82b2e21c8065ce45b"
+y = "0x2222ae947c57fabc4b57637a6fb8ac041ef27420fc540304f780a3f147aea1c4"
+
+[global_elgamal_pk]
+x = "0x2a7e3eef0b3d3cd33e0511bc8a90e056274a49f762d5808f359bbbeea6db42f4"
+y = "0x1a7429b1016b8a6c294a51defc47712e5ea9465572891efa2ca70c833fa2cb15"

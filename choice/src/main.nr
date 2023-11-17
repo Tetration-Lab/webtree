@@ -26,7 +26,7 @@ fn main(
     
     let mut this_rand = mimc_bn254([preimage, public_seed]);
     for i in 0..5 {
-        let r = this_rand.to_le_bytes(4);
+        let r = this_rand.to_le_bytes(32);
         this_rand /= 1024;
         let e1 = r[0];
         let e2 = r[1];
@@ -71,11 +71,14 @@ fn main(
 fn test() {
     let bjj = baby_jubjub().curve;
     let pk = bjj.mul(69, bjj.gen);
+    println(pk);
     let gpk = bjj.mul(420, bjj.gen);
+    println(gpk);
     let r = [1,2,3,4];
     let seed = 1337;
     let preimage = 7331;
     let commitment = mimc_bn254([preimage]);
+    println(commitment);
     let choices = [0,1,1,0,1];
     let _ = main(pk, gpk, r, seed, commitment, preimage, choices);
 }
