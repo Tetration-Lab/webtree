@@ -5,9 +5,11 @@ import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
 import { SelectServer } from "@/components/SelectServer";
 import { Welcome } from "@/components/Welcome";
-import { Stack } from "@chakra-ui/react";
+import { Button, Stack } from "@chakra-ui/react";
 import { usePlayer } from "@/stores/usePlayer";
 import { GeneratePassword } from "@/components/GeneratePassword";
+import { generatePrivateKey } from "viem/accounts";
+import { seedToChoices } from "@/utils/seed";
 
 export const HomePage = () => {
   const { isLoading: isSwitching } = useSwitchNetwork();
@@ -55,7 +57,17 @@ export const HomePage = () => {
               <GeneratePassword />
             </>
           ) : (
-            <></>
+            <>
+              <Button
+                onClick={() => {
+                  const random = generatePrivateKey();
+                  const choices = seedToChoices(random);
+                  console.log(choices);
+                }}
+              >
+                Random
+              </Button>
+            </>
           )}
         </Stack>
       </Section>
