@@ -1,0 +1,7 @@
+[package]
+name = "choice"
+type = "bin"
+authors = ["yoyoismee.eth","yoisha"]
+compiler_version = ">=0.19.2"
+
+[dependencies]
