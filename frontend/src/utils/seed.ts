@@ -18,7 +18,7 @@ export const seedToChoices = (seed: Hex) => {
     stats[0] += 4 - (e1 & 7);
     stats[1] += 4 - (e2 & 7);
     stats[2] += 4 - (e3 & 7);
-    stats[3] += 10 - (e1 & 7) - (e2 & 7) - (e3 & 7);
+    stats[3] += (e1 & 7) + (e2 & 7) + (e3 & 7) - 11;
 
     const plus: Stat[] = [];
     const minus: Stat[] = [];

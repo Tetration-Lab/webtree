@@ -5,9 +5,10 @@ import {
   Button,
   Card,
   Circle,
-  CircularProgress,
   HStack,
   Heading,
+  Icon,
+  IconButton,
   Stack,
   Text,
   useToast,
@@ -21,12 +22,28 @@ import TinderCard from "react-tinder-card";
 import { useChainId } from "wagmi";
 import { Story } from "@/interfaces/story";
 import { useQuery } from "@tanstack/react-query";
+import { FaX } from "react-icons/fa6";
 
 export const Game = () => {
   const chainId = useChainId();
   const toast = useToast({
     position: "top",
     duration: 5000,
+    render: ({ title, description, id, onClose }) => (
+      <Card as={Stack} key={id} maxW="xl">
+        <HStack justify="space-between">
+          <Heading fontSize="lg">{title}</Heading>
+          <IconButton
+            icon={<Icon as={FaX} />}
+            aria-label="close"
+            onClick={onClose}
+            variant="outline"
+            size="xs"
+          />
+        </HStack>
+        <Text>{description}</Text>
+      </Card>
+    ),
   });
 
   const [randomness, setRandomness] = useState(generatePrivateKey());
@@ -58,7 +75,7 @@ export const Game = () => {
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
-  const [stats, setStats] = useState(_.mapValues(STATS, () => 50));
+  const [stats, setStats] = useState(_.mapValues(STATS, (v) => v.default));
 
   const random = () => {
     setRandomness(generatePrivateKey());
@@ -94,7 +111,11 @@ export const Game = () => {
     <>
       <HStack>
         {_.entries(STATS).map(([key, stat], i) => {
-          const percent = _.clamp(stats[key as Stat], 0, 100);
+          const percent = _.clamp(
+            (stats[key as Stat] * 50) / stat.default,
+            0,
+            100
+          );
           const current = cards?.[currentCardIndex]?.stats?.[i] ?? 0;
           return (
             <Stack key={key} align="center">
@@ -214,7 +235,9 @@ export const Game = () => {
                           border="1.5px solid"
                           borderColor="chakra-body-text"
                         >
-                          <Heading>{card.title}</Heading>
+                          <Heading>
+                            {card.emoji} {card.title}
+                          </Heading>
                           <Text>{card.description}</Text>
                         </Card>
                       </TinderCard>
