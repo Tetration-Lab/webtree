@@ -3,6 +3,7 @@ preimage = "7331"
 private_choices = ["1", "1", "1", "1", "1"]
 public_commitment = "0x20c32ae0c61ead8d123604e7eb2b5455ed5ddea00811b71b2d06cb7dbf52c1c9"
 public_seed = "12"
+private_key = "69"
 
 [elgamal_pk]
 x = "0x2301193687fc5fa67af47de5db220d87361e62dbe0492ad82b2e21c8065ce45b"
