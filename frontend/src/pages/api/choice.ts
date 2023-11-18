@@ -5,16 +5,19 @@ import { Hex, toHex } from 'viem'
 import {OpenAI} from 'openai'
 import NodeCache from 'node-cache'
 import {Story} from '@/interfaces/story'
+import { keywordMap } from '@/constants/keywords'
 
 const choiceCache = new NodeCache( { stdTTL: 120, checkperiod: 300 } );
 const openai = new OpenAI();
 
-async function writeStoryWithRetry(theme: string, yesStat: string, noStat: string, maxRetries: number) {
+async function writeStoryWithRetry(theme: string, yesStat: string, noStat: string, chainId: number, maxRetries: number) {
     let lastError: any;
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-            return await writeStory(theme, yesStat, noStat);
+            const random = Math.round(Math.random() * 1000000) % keywordMap[chainId].length
+            const keyword = keywordMap[chainId][random]
+            return await writeStory(theme, yesStat, noStat, keyword);
         } catch (error) {
             console.log(error)
             lastError = error;
@@ -25,7 +28,7 @@ async function writeStoryWithRetry(theme: string, yesStat: string, noStat: strin
     throw lastError;
 }
 
-async function writeStory(theme: string, yesStat: string, noStat: string): Promise<Story> {
+async function writeStory(theme: string, yesStat: string, noStat: string, keyword:string): Promise<Story> {
   const response = await openai.chat.completions.create({
     messages: [
       {
@@ -39,6 +42,7 @@ async function writeStory(theme: string, yesStat: string, noStat: string): Promi
       - story should have no longer than 50 words.
       - do not mention about the country background story
       - add some the short description of the outcome of the yes/no choice. it should have no longer than 10 words. do not include the +/- stat in the outcome description
+      - story description and title should include ${keyword} and be creative & surprise as much as possible
       - You should ONLY response in the JSON format as described below:
         - title: story title
         - emoji: emoji that represent the story title
@@ -55,8 +59,10 @@ async function writeStory(theme: string, yesStat: string, noStat: string): Promi
       - no: ${noStat}`
     }],
     model: 'gpt-4-1106-preview',
-    temperature: 0.8
+    temperature: 1.2
   })
+  console.log(keyword)
+  console.log(response.choices[0].message.content)
   return {
     ...JSON.parse(response.choices[0].message.content || ''),
     yesStat: yesStat.trim(),
@@ -91,6 +97,7 @@ export default async function handler(
   const seed = req.query.seed as Hex
   const chainId:number = parseInt(req.query.chainId as string)
   const theme:string = themeMap[chainId]
+  console.log(seed, theme)
   const choiceKey = `${seed}_${chainId}`
   if (choiceCache.has(choiceKey)){
     const stories = choiceCache.get<Story[]>(choiceKey) || []
@@ -122,7 +129,7 @@ export default async function handler(
           noStat += `${statPoint} ${stat} `;
         }
       });
-      const story = await writeStoryWithRetry(theme, yesStat, noStat, 3)
+      const story = await writeStoryWithRetry(theme, yesStat, noStat, chainId, 3)
       stories[index] = story
   }))
   choiceCache.set(choiceKey, stories)
