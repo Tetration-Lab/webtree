@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import _ from "lodash";
 import Lottie from "react-lottie-player";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Stat, statByIndex } from "@/interfaces/stats";
 import { useChainId } from "wagmi";
 import { Story } from "@/interfaces/story";
@@ -23,6 +23,7 @@ import { useQuery } from "@tanstack/react-query";
 import { FaX } from "react-icons/fa6";
 import { useProver } from "@/hooks/useProver";
 import { SwipableCard } from "./SwipableCard";
+import { Facts } from "./Facts";
 
 export const Game = () => {
   const chainId = useChainId();
@@ -46,8 +47,7 @@ export const Game = () => {
     ),
   });
 
-  const { seed, prove, isProving } = useProver();
-
+  const { seed, prove, isProving, proof, reset: resetProof } = useProver();
   const { data: cards, isLoading } = useQuery<
     (Story & ReturnType<typeof seedToChoices>[number])[]
   >({
@@ -76,6 +76,7 @@ export const Game = () => {
   const reset = () => {
     setChoices([]);
     setCurrentCardIndex(0);
+    resetProof();
   };
 
   const [choices, setChoices] = useState<boolean[]>([]);
@@ -104,6 +105,12 @@ export const Game = () => {
     [cards, currentCardIndex]
   );
   const [swiped, setSwiped] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (currentCardIndex >= 5 && !proof && !isProving) {
+      prove(choices);
+    }
+  }, [proof, currentCardIndex, isProving]);
 
   return (
     <>
@@ -183,17 +190,23 @@ export const Game = () => {
         ) : (
           <>
             <Text>
-              {currentCardIndex >= cards.length ? (
-                "Empty"
-              ) : (
+              {currentCardIndex < cards.length && (
                 <>
                   {currentCardIndex + 1} / {cards.length}
                 </>
               )}
             </Text>
-            {currentCardIndex < cards.length && (
-              <>
-                <Stack pos="relative" h="400px">
+            <Stack pos="relative" h="400px">
+              {isProving && (
+                <Stack h="400px" align="center" justify="center">
+                  <Heading fontSize={{ base: "md", md: "lg" }}>
+                    Generating Zero Knowledge Proof
+                  </Heading>
+                  <Facts />
+                </Stack>
+              )}
+              {currentCardIndex < cards.length && (
+                <>
                   <Heading
                     pos="absolute"
                     left="200px"
@@ -222,9 +235,9 @@ export const Game = () => {
                       />
                     );
                   })}
-                </Stack>
-              </>
-            )}
+                </>
+              )}
+            </Stack>
           </>
         )}
       </Stack>
