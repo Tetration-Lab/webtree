@@ -88,7 +88,7 @@ export const Game = () => {
           newStats[statByIndex(statIndex)] += value * (isYes ? 1 : -1);
         });
         setStats(newStats);
-        setSwiped(true);
+        setSwiped(isYes);
         setChoices((c) => [...c, isYes]);
         toast.closeAll();
         toast({
@@ -96,14 +96,14 @@ export const Game = () => {
           description: isYes ? card.yes : card.no,
         });
         setTimeout(() => {
-          setSwiped(false);
+          setSwiped(null);
           setCurrentCardIndex((i) => i + 1);
         }, 1000);
       }
     },
     [cards, currentCardIndex]
   );
-  const [swiped, setSwiped] = useState(false);
+  const [swiped, setSwiped] = useState<boolean | null>(null);
 
   return (
     <>
@@ -144,11 +144,15 @@ export const Game = () => {
                 <Circle
                   size="12px"
                   bg={
-                    swiped
+                    swiped !== null
                       ? current > 0
-                        ? "green.400"
+                        ? swiped
+                          ? "green.400"
+                          : "red.400"
                         : current < 0
-                        ? "red.400"
+                        ? swiped
+                          ? "red.400"
+                          : "green.400"
                         : "chakra-body-text"
                       : "chakra-body-text"
                   }
