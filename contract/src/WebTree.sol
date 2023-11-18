@@ -71,7 +71,7 @@ contract WebTree is Ownable {
         EdOnBN254.Affine memory _worldPublicKey
     ) Ownable(owner) {
         backend = _backend;
-        epoch = 0;
+        epoch = 1;
         epochTime = block.timestamp;
         choiceVerifier = ChoiceUltraVerifier(_choiceVeifier);
 
@@ -132,7 +132,7 @@ contract WebTree is Ownable {
             es1: encrypt(DEFAULT_STAT, _publicKey),
             es2: encrypt(DEFAULT_STAT, _publicKey),
             es3: encrypt(DEFAULT_STAT, _publicKey),
-            lastActionEpoch: epoch,
+            lastActionEpoch: 0,
             totalDonations: 0,
             totalActions: 0
         });
