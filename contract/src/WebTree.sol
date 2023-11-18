@@ -2,11 +2,11 @@
 pragma solidity ^0.8.13;
 import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254V.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import {ChoiceUltraVerifier} from "./choice_plonk_vk.sol";
+import {UltraVerifier} from "./ChoicePlonkVK.sol";
 
 contract WebTree is Ownable {
     address public backend;
-    ChoiceUltraVerifier public choiceVerifier;
+    UltraVerifier public choiceVerifier;
 
     uint256 public constant DEFAULT_STAT = 100;
     uint256 public constant DEFAULT_GLOBAL_STAT = 1337;
@@ -16,13 +16,6 @@ contract WebTree is Ownable {
     enum STATUS {
         FREE,
         JOINED
-    }
-
-    struct ActionArgs {
-        CipherText es1;
-        CipherText es2;
-        CipherText es3;
-        CipherText esworld;
     }
 
     struct CipherText {
@@ -73,7 +66,7 @@ contract WebTree is Ownable {
         backend = _backend;
         epoch = 1;
         epochTime = block.timestamp;
-        choiceVerifier = ChoiceUltraVerifier(_choiceVeifier);
+        choiceVerifier = UltraVerifier(_choiceVeifier);
 
         sworld = DEFAULT_GLOBAL_STAT;
         esworld = encrypt(DEFAULT_GLOBAL_STAT, _worldPublicKey);
@@ -168,7 +161,10 @@ contract WebTree is Ownable {
         druidBalance += msg.value;
     }
 
-    function action(ActionArgs memory act, bytes memory proof) public {
+    function action(
+        EdOnBN254.Affine[] calldata _es,
+        bytes calldata proof
+    ) public {
         UserStat storage stat = users[msg.sender];
         require(stat.status == STATUS.JOINED, "not joined");
         require(stat.lastActionEpoch < epoch, "already acted");
@@ -182,32 +178,32 @@ contract WebTree is Ownable {
         inputs[3] = bytes32(worldPublicKey.y);
         inputs[4] = bytes32(epochTime);
         inputs[5] = stat.commitment;
-        inputs[6] = bytes32(act.es1.c1.x);
-        inputs[7] = bytes32(act.es1.c1.y);
-        inputs[8] = bytes32(act.es1.c2.x);
-        inputs[9] = bytes32(act.es1.c2.y);
-        inputs[10] = bytes32(act.es2.c1.x);
-        inputs[11] = bytes32(act.es2.c1.y);
-        inputs[12] = bytes32(act.es2.c2.x);
-        inputs[13] = bytes32(act.es2.c2.y);
-        inputs[14] = bytes32(act.es3.c1.x);
-        inputs[15] = bytes32(act.es3.c1.y);
-        inputs[16] = bytes32(act.es3.c2.x);
-        inputs[17] = bytes32(act.es3.c2.y);
-        inputs[18] = bytes32(act.esworld.c1.x);
-        inputs[19] = bytes32(act.esworld.c1.y);
-        inputs[20] = bytes32(act.esworld.c2.x);
-        inputs[21] = bytes32(act.esworld.c2.y);
+        inputs[6] = bytes32(_es[0].x);
+        inputs[7] = bytes32(_es[0].y);
+        inputs[8] = bytes32(_es[1].x);
+        inputs[9] = bytes32(_es[1].y);
+        inputs[10] = bytes32(_es[2].x);
+        inputs[11] = bytes32(_es[2].y);
+        inputs[12] = bytes32(_es[3].x);
+        inputs[13] = bytes32(_es[3].y);
+        inputs[14] = bytes32(_es[4].x);
+        inputs[15] = bytes32(_es[4].y);
+        inputs[16] = bytes32(_es[5].x);
+        inputs[17] = bytes32(_es[5].y);
+        inputs[18] = bytes32(_es[6].x);
+        inputs[19] = bytes32(_es[6].y);
+        inputs[20] = bytes32(_es[7].x);
+        inputs[21] = bytes32(_es[7].y);
 
         require(choiceVerifier.verify(proof, inputs), "Invalid proof");
 
-        stat.es1.c1 = EdOnBN254.add(stat.es1.c1, act.es1.c1);
-        stat.es1.c2 = EdOnBN254.add(stat.es1.c2, act.es1.c2);
-        stat.es2.c1 = EdOnBN254.add(stat.es2.c1, act.es2.c1);
-        stat.es2.c2 = EdOnBN254.add(stat.es2.c2, act.es2.c2);
-        stat.es3.c1 = EdOnBN254.add(stat.es3.c1, act.es3.c1);
-        stat.es3.c2 = EdOnBN254.add(stat.es3.c2, act.es3.c2);
-        esworld.c1 = EdOnBN254.add(esworld.c1, act.esworld.c1);
-        esworld.c2 = EdOnBN254.add(esworld.c2, act.esworld.c2);
+        stat.es1.c1 = EdOnBN254.add(stat.es1.c1, _es[0]);
+        stat.es1.c2 = EdOnBN254.add(stat.es1.c2, _es[1]);
+        stat.es2.c1 = EdOnBN254.add(stat.es2.c1, _es[2]);
+        stat.es2.c2 = EdOnBN254.add(stat.es2.c2, _es[3]);
+        stat.es3.c1 = EdOnBN254.add(stat.es3.c1, _es[4]);
+        stat.es3.c2 = EdOnBN254.add(stat.es3.c2, _es[5]);
+        esworld.c1 = EdOnBN254.add(esworld.c1, _es[6]);
+        esworld.c2 = EdOnBN254.add(esworld.c2, _es[7]);
     }
 }

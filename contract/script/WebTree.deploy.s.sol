@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {WebTree} from "../src/WebTree.sol";
-import {ChoiceUltraVerifier} from "../src/choice_plonk_vk.sol";
+import {UltraVerifier} from "../src/ChoicePlonkVK.sol";
 import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254V.sol";
 
 contract Deploy is Script {
@@ -13,7 +13,7 @@ contract Deploy is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        ChoiceUltraVerifier choiceVerifier = new ChoiceUltraVerifier();
+        UltraVerifier choiceVerifier = new UltraVerifier();
         new WebTree(
             0xf3066Db6F37C301bEE285c0DE8c795E19F6EFA5d,
             address(this),
