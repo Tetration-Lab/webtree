@@ -1,5 +1,10 @@
 import { Navbar, Section } from "@/components/common";
-import { useAccount, useChainId, useSwitchNetwork } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useContractRead,
+  useSwitchNetwork,
+} from "wagmi";
 import { chains, web3Modal } from "@/constants/web3";
 import _ from "lodash";
 import { useEffect, useMemo, useState } from "react";
@@ -9,6 +14,7 @@ import { usePlayer } from "@/stores/usePlayer";
 import { GeneratePassword } from "@/components/GeneratePassword";
 import { Game } from "@/components/Game";
 import { Stack } from "@chakra-ui/react";
+import { WEBTREE_ABI, getContract } from "@/constants/contracts";
 
 export const HomePage = () => {
   const { isLoading: isSwitching } = useSwitchNetwork();
@@ -21,7 +27,7 @@ export const HomePage = () => {
     () =>
       !isSwitching &&
       isConnected &&
-      chains.some((c) => c.id === chainId) &&
+      chains.some((c) => c.id === chainId && c.world.contract) &&
       chainId === selectedChainId,
     [isSwitching, isConnected, chainId, selectedChainId, chains]
   );
@@ -33,6 +39,15 @@ export const HomePage = () => {
       setKey(null);
     }
   }, [address, key?.address]);
+
+  const [toggle, setToggle] = useState(false);
+  const { data: user, isLoading: isLoadingUser } = useContractRead({
+    scopeKey: `${toggle}`,
+    address: getContract(chainId),
+    abi: WEBTREE_ABI,
+    functionName: "users",
+    args: address ? [address] : undefined,
+  });
 
   return (
     <>
@@ -51,9 +66,13 @@ export const HomePage = () => {
             />
           ) : !correctlyConnected ? (
             <SelectServer />
-          ) : key === null ? (
+          ) : key === null || !user?.status ? (
             <>
-              <GeneratePassword />
+              <GeneratePassword
+                isLoadingUser={isLoadingUser}
+                isNeedRegister={!user?.status}
+                toggleQuery={() => setToggle((e) => !e)}
+              />
             </>
           ) : (
             <Game />

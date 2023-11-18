@@ -1,10 +1,10 @@
 import { getChain } from "@/constants/web3";
 import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { Icon, Link, keyframes, useToast } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { FaSpinner } from "react-icons/fa6";
 import { Hex } from "viem";
-import { useChainId } from "wagmi";
+import { useChainId, usePublicClient } from "wagmi";
 
 export const useTransactionToast = () => {
   const toast = useToast({
@@ -67,10 +67,34 @@ export const useTransactionToast = () => {
     });
   };
 
+  const client = usePublicClient();
+  const [isWaiting, setIsWaiting] = useState(false);
+  const waitForTransactionReceipt = useCallback(
+    async (hash: Hex) => {
+      try {
+        setIsWaiting(true);
+        const receipt = await client.waitForTransactionReceipt({ hash });
+        if (receipt.status === "success") {
+          success(hash);
+        } else {
+          error(hash);
+        }
+      } catch (e) {
+        error(hash);
+        throw e;
+      } finally {
+        setIsWaiting(false);
+      }
+    },
+    [client]
+  );
+
   return {
     submitted,
     success,
     error,
     errorMessage,
+    waitForTransactionReceipt,
+    isWaiting,
   };
 };

@@ -14,15 +14,15 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import _ from "lodash";
-import { generatePrivateKey } from "viem/accounts";
 import Lottie from "react-lottie-player";
-import { createRef, useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { Stat, statByIndex } from "@/interfaces/stats";
-import TinderCard from "react-tinder-card";
 import { useChainId } from "wagmi";
 import { Story } from "@/interfaces/story";
 import { useQuery } from "@tanstack/react-query";
 import { FaX } from "react-icons/fa6";
+import { useProver } from "@/hooks/useProver";
+import { SwipableCard } from "./SwipableCard";
 
 export const Game = () => {
   const chainId = useChainId();
@@ -46,21 +46,22 @@ export const Game = () => {
     ),
   });
 
-  const [randomness, setRandomness] = useState(generatePrivateKey());
+  const { seed, prove, isProving } = useProver();
 
   const { data: cards, isLoading } = useQuery<
     (Story & ReturnType<typeof seedToChoices>[number])[]
   >({
-    queryKey: ["choices", randomness],
+    queryKey: ["choices", seed],
     queryFn: async () => {
+      if (!seed) return [];
       const response = await fetch(
-        `/api/choice?seed=${randomness}&chainId=${chainId}`,
+        `/api/choice?seed=${seed}&chainId=${chainId}`,
         {
           cache: "force-cache",
         }
       );
       const result: Story[] = await response.json();
-      const choices = seedToChoices(randomness);
+      const choices = seedToChoices(seed);
       return result.map((story, i) => ({
         ...story,
         ...choices[i],
@@ -68,20 +69,16 @@ export const Game = () => {
     },
     cacheTime: 100000,
   });
-  const refs = useMemo(
-    () => _.range(cards?.length ?? 0).map(() => createRef<HTMLDivElement>()),
-    [cards]
-  );
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-
   const [stats, setStats] = useState(_.mapValues(STATS, (v) => v.default));
 
-  const random = () => {
-    setRandomness(generatePrivateKey());
+  const reset = () => {
+    setChoices([]);
     setCurrentCardIndex(0);
   };
 
+  const [choices, setChoices] = useState<boolean[]>([]);
   const onSwipe = useCallback(
     (isYes: boolean) => {
       if (cards) {
@@ -92,6 +89,7 @@ export const Game = () => {
         });
         setStats(newStats);
         setSwiped(true);
+        setChoices((c) => [...c, isYes]);
         toast.closeAll();
         toast({
           title: card.title,
@@ -211,36 +209,13 @@ export const Game = () => {
                   {_.reverse(cards).map((card, _i) => {
                     const i = cards.length - _i - 1;
                     return (
-                      <TinderCard
-                        key={`${randomness}${i}`}
-                        swipeRequirementType="velocity"
-                        preventSwipe={["up", "down"]}
-                        onSwipe={(dir) => onSwipe(dir === "right")}
-                      >
-                        <Card
-                          ref={refs[i]}
-                          userSelect="none"
-                          pointerEvents={
-                            i === currentCardIndex ? "auto" : "none"
-                          }
-                          transition="all 0.3s ease-in-out"
-                          pos="absolute"
-                          zIndex={cards.length - i}
-                          top={0}
-                          left="50%"
-                          transform="translateX(-50%)"
-                          h="350px"
-                          aspectRatio={1 / 1.5}
-                          overflowY="auto"
-                          border="1.5px solid"
-                          borderColor="chakra-body-text"
-                        >
-                          <Heading>
-                            {card.emoji} {card.title}
-                          </Heading>
-                          <Text>{card.description}</Text>
-                        </Card>
-                      </TinderCard>
+                      <SwipableCard
+                        key={`${seed}${i}`}
+                        card={card}
+                        onSwipe={onSwipe}
+                        pointerEvents={i === currentCardIndex ? "auto" : "none"}
+                        zIndex={i}
+                      />
                     );
                   })}
                 </Stack>
@@ -249,7 +224,10 @@ export const Game = () => {
           </>
         )}
       </Stack>
-      <Button onClick={random}>Random</Button>
+      <Button onClick={() => prove(choices)} isLoading={isProving}>
+        Prove
+      </Button>
+      <Button onClick={reset}>Reset</Button>
     </>
   );
 };

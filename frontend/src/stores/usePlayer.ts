@@ -1,4 +1,4 @@
-import { Address, Hex, fromBytes, fromHex, toHex } from "viem";
+import { Address, Hex, fromHex, toHex } from "viem";
 import { create } from "zustand";
 import { buildMimc7, buildBabyjub } from "circomlibjs";
 
@@ -7,10 +7,10 @@ interface PlayerStore {
   key: {
     address: Address;
     raw: Hex;
-    randomness: Hex;
+    commitment: Hex;
     publicKey: {
-      x: Hex;
-      y: Hex;
+      x: bigint;
+      y: bigint;
     };
   } | null;
   setKey: (
@@ -43,10 +43,10 @@ export const usePlayer = create<PlayerStore>((set) => ({
       key: {
         raw: toHex(keyModFr),
         address: key.address,
-        randomness: fromBytes(randomness, "hex"),
+        commitment: `0x${mimc.F.toString(randomness, 16)}`,
         publicKey: {
-          x: fromBytes(publicKey[0], "hex"),
-          y: fromBytes(publicKey[1], "hex"),
+          x: fromHex(`0x${mimc.F.toString(publicKey[0], 16)}`, "bigint"),
+          y: fromHex(`0x${mimc.F.toString(publicKey[1], 16)}`, "bigint"),
         },
       },
     });
