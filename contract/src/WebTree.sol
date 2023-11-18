@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
-import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254.sol";
+import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254V.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract WebTree is Ownable {
