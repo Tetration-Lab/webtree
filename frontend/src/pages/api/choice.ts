@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import {seedToChoices} from '@/utils/seed'
 import { Hex, toHex } from 'viem'
 import {OpenAI} from 'openai'
+import NodeCache from 'node-cache'
 
 interface Story {
   title: string
@@ -12,6 +13,8 @@ interface Story {
   yesStat: string
   noStat: string
 }
+
+const choiceCache = new NodeCache( { stdTTL: 120, checkperiod: 300 } );
 
 // GET /api/choice?seed=xxx&chainId=xxx
 export default async function handler(
@@ -27,9 +30,24 @@ export default async function handler(
     'Religion': 2,
     'Nature': 3
   }
+  const themeMap: Record<number,string> = {
+    534351: `autumn brown-ish medieval`,
+    534352: `autumn brown-ish medieval`,
+    5001: `futuristic modern neon teal`,
+    5000: `futuristic modern neon teal`,
+    1442: `fantasy mystic grand dark purple`,
+    1101: `fantasy mystic grand dark purple`,
+    84532: `dark-blue moonlight elf-y world treew dark blue and black`,
+    8453: `dark-blue moonlight elf-y world treew dark blue and black`
+  }
   const seed = req.query.seed as Hex
-  const chainId = req.query.chainId as string || ''
-  const theme = `autumn brown-ish medieval`
+  const chainId:number = parseInt(req.query.chainId as string)
+  const theme:string = themeMap[chainId]
+  const choiceKey = `${seed}_${chainId}`
+  if (choiceCache.has(choiceKey)){
+    const stories = choiceCache.get<Story[]>(choiceKey) || []
+    return res.status(200).json(stories)
+  }
   const points = seedToChoices(seed)
   let stories:Story[] = new Array<Story>(5)
   const openai = new OpenAI();
@@ -79,5 +97,6 @@ export default async function handler(
       noStat: noStat.trim()
     }
   }))
+  choiceCache.set(choiceKey, stories)
   res.status(200).json(stories)
 }
