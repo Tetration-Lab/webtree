@@ -147,36 +147,48 @@ export const Game = () => {
       ) : (
         <>
           <Text>
-            {currentCardIndex} / {cards?.length}
+            {currentCardIndex >= cards.length ? (
+              "Empty"
+            ) : (
+              <>
+                {currentCardIndex + 1} / {cards.length}
+              </>
+            )}
           </Text>
-          <Stack pos="relative" h="sm">
+          <Stack pos="relative" h="400px">
             {currentCardIndex <= cards.length &&
-              cards.map((card, i) => (
-                <TinderCard
-                  key={`${randomness}${i}`}
-                  swipeRequirementType="velocity"
-                  preventSwipe={["up", "down"]}
-                  onSwipe={(dir) => onSwipe(dir === "right")}
-                >
-                  <Card
-                    as={Stack}
-                    userSelect="none"
-                    opacity={i === currentCardIndex ? 1 : 0}
-                    visibility={i === currentCardIndex ? "visible" : "hidden"}
-                    transition="all 0.3s ease-in-out"
-                    pos="absolute"
-                    top={0}
-                    left="50%"
-                    transform="translateX(-50%)"
-                    h="sm"
-                    aspectRatio={1 / 1.5}
-                    overflowY="auto"
+              _.reverse(cards).map((card, _i) => {
+                const i = cards.length - _i - 1;
+                return (
+                  <TinderCard
+                    key={`${randomness}${i}`}
+                    swipeRequirementType="velocity"
+                    preventSwipe={["up", "down"]}
+                    onSwipe={(dir) => onSwipe(dir === "right")}
                   >
-                    <Heading>{card.title}</Heading>
-                    <Text>{card.description}</Text>
-                  </Card>
-                </TinderCard>
-              ))}
+                    <Card
+                      userSelect="none"
+                      pointerEvents={i === currentCardIndex ? "auto" : "none"}
+                      //opacity={i === currentCardIndex ? 1 : 0}
+                      //visibility={i === currentCardIndex ? "visible" : "hidden"}
+                      transition="all 0.3s ease-in-out"
+                      pos="absolute"
+                      zIndex={cards.length - i}
+                      top={0}
+                      left="50%"
+                      transform="translateX(-50%)"
+                      h="350px"
+                      aspectRatio={1 / 1.5}
+                      overflowY="auto"
+                      border="1.5px solid"
+                      borderColor="chakra-body-text"
+                    >
+                      <Heading>{card.title}</Heading>
+                      <Text>{card.description}</Text>
+                    </Card>
+                  </TinderCard>
+                );
+              })}
           </Stack>
         </>
       )}
