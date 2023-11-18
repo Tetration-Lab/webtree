@@ -17,14 +17,8 @@ export const useProver = () => {
   const [proof, setProof] = useState<
     | (ProofData & {
         stats: {
-          c0: {
-            x: Hex;
-            y: Hex;
-          };
-          c1: {
-            x: Hex;
-            y: Hex;
-          };
+          x: bigint;
+          y: bigint;
         }[];
       })
     | null
@@ -73,9 +67,6 @@ export const useProver = () => {
         );
         if (!key || !data || !data[1].result || !data[0].result) return;
         console.log("executing return data");
-        console.log(choices);
-        console.log(toHex(key.publicKey.x));
-        console.log(toHex(key.publicKey.y));
         const witness = {
           elgamal_pk: {
             x: toHex(key.publicKey.x),
@@ -94,25 +85,33 @@ export const useProver = () => {
         };
         const result = await noir.execute(witness);
         console.log("result", result);
+        console.log("witness", witness);
         const now = _.now();
         const proof = await noir.generateFinalProof(witness);
         console.log("elapsed", (_.now() - now) / 1000, "s");
         setProof({
           ...proof,
-          stats: (result.returnValue as any[]).map((e) => {
-            return {
-              c0: {
-                x: e[0].x,
-                y: e[0].y,
-              },
-              c1: {
-                x: e[1].x,
-                y: e[1].y,
-              },
-            };
-          }),
+          stats: _.flatten(
+            (result.returnValue as any[]).map((e) => {
+              return [
+                {
+                  x: fromHex(e[0].x, "bigint"),
+                  y: fromHex(e[0].y, "bigint"),
+                },
+                {
+                  x: fromHex(e[1].x, "bigint"),
+                  y: fromHex(e[1].y, "bigint"),
+                },
+              ];
+            })
+          ),
         });
-        console.log(proof);
+        console.log("verified", await noir.verifyFinalProof(proof));
+        console.log("proof", proof);
+        console.log(
+          "public inputs",
+          proof.publicInputs.map((e) => toHex(e))
+        );
       } catch (e) {
         throw e;
       } finally {

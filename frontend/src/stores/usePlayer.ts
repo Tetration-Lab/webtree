@@ -1,6 +1,7 @@
 import { Address, Hex, fromHex, toHex } from "viem";
 import { create } from "zustand";
 import { buildMimc7, buildBabyjub } from "circomlibjs";
+import { User } from "@/interfaces/user";
 
 interface PlayerStore {
   chainId: number | null;
@@ -19,6 +20,8 @@ interface PlayerStore {
       address: Address;
     } | null
   ) => Promise<void>;
+  player: User | null;
+  setPlayer: (player: User | null) => void;
   setChainId: (chainId: number | null) => void;
 }
 
@@ -52,4 +55,6 @@ export const usePlayer = create<PlayerStore>((set) => ({
     });
   },
   setChainId: (chainId) => set({ chainId }),
+  player: null,
+  setPlayer: (player) => set({ player }),
 }));

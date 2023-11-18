@@ -17,15 +17,25 @@ import _ from "lodash";
 import Lottie from "react-lottie-player";
 import { useCallback, useEffect, useState } from "react";
 import { Stat, statByIndex } from "@/interfaces/stats";
-import { useChainId } from "wagmi";
+import {
+  useAccount,
+  useChainId,
+  useContractRead,
+  useContractWrite,
+  usePrepareContractWrite,
+} from "wagmi";
 import { Story } from "@/interfaces/story";
 import { useQuery } from "@tanstack/react-query";
 import { FaX } from "react-icons/fa6";
 import { useProver } from "@/hooks/useProver";
 import { SwipableCard } from "./SwipableCard";
 import { Facts } from "./Facts";
+import { WEBTREE_ABI, getContract } from "@/constants/contracts";
+import { toHex } from "viem";
+import { useTransactionToast } from "@/hooks/useTransactionToast";
+import { usePlayer } from "@/stores/usePlayer";
 
-export const Game = () => {
+export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   const chainId = useChainId();
   const toast = useToast({
     position: "top",
@@ -47,6 +57,7 @@ export const Game = () => {
     ),
   });
 
+  const { player } = usePlayer();
   const { seed, prove, isProving, proof, reset: resetProof } = useProver();
   const { data: cards, isLoading } = useQuery<
     (Story & ReturnType<typeof seedToChoices>[number])[]
@@ -111,6 +122,36 @@ export const Game = () => {
       prove(choices);
     }
   }, [proof, currentCardIndex, isProving]);
+
+  const { data: epoch } = useContractRead({
+    address: getContract(chainId),
+    abi: WEBTREE_ABI,
+    functionName: "epoch",
+    staleTime: 15000,
+  });
+
+  const { address } = useAccount();
+  const txToast = useTransactionToast();
+  const { config } = usePrepareContractWrite({
+    address: getContract(chainId),
+    abi: WEBTREE_ABI,
+    account: address,
+    functionName: "action",
+    args: proof ? [proof.stats, toHex(proof.proof)] : undefined,
+  });
+  const { writeAsync, isLoading: isSubmitting } = useContractWrite({
+    ...config,
+    onError: (error) => {
+      txToast.errorMessage(error.message);
+    },
+    onSettled: async (tx) => {
+      if (tx?.hash) {
+        txToast.submitted(tx.hash);
+        await txToast.waitForTransactionReceipt(tx.hash);
+        toggleQuery();
+      }
+    },
+  });
 
   return (
     <>
@@ -196,16 +237,8 @@ export const Game = () => {
                 </>
               )}
             </Text>
-            <Stack pos="relative" h="400px">
-              {isProving && (
-                <Stack h="400px" align="center" justify="center">
-                  <Heading fontSize={{ base: "md", md: "lg" }}>
-                    Generating Zero Knowledge Proof
-                  </Heading>
-                  <Facts />
-                </Stack>
-              )}
-              {currentCardIndex < cards.length && (
+            <Stack pos="relative" h="400px" align="center">
+              {currentCardIndex < cards.length ? (
                 <>
                   <Heading
                     pos="absolute"
@@ -236,15 +269,48 @@ export const Game = () => {
                     );
                   })}
                 </>
+              ) : (
+                <Stack h="100%" justify="center" align="center">
+                  {isProving && (
+                    <>
+                      <Box boxSize="32px">
+                        <Lottie path="/icons/target.json" loop play />
+                      </Box>
+                      <Heading fontSize={{ base: "md", md: "lg" }}>
+                        Generating Zero Knowledge Proof
+                      </Heading>
+                      <Facts />
+                    </>
+                  )}
+                  {proof &&
+                    player &&
+                    epoch &&
+                    player.lastActionEpoch < epoch && (
+                      <>
+                        <Box boxSize="32px">
+                          <Lottie path="/icons/target.json" loop play />
+                        </Box>
+                        <Heading fontSize={{ base: "md", md: "lg" }}>
+                          Submit your choices to the world
+                        </Heading>
+                        <Text>
+                          By submitting, your choices will forever be recorded
+                          on the world engraving.
+                        </Text>
+                        <Button
+                          isLoading={isSubmitting || txToast.isWaiting}
+                          onClick={() => writeAsync && writeAsync()}
+                        >
+                          Submit
+                        </Button>
+                      </>
+                    )}
+                </Stack>
               )}
             </Stack>
           </>
         )}
       </Stack>
-      <Button onClick={() => prove(choices)} isLoading={isProving}>
-        Prove
-      </Button>
-      <Button onClick={reset}>Reset</Button>
     </>
   );
 };

@@ -21,7 +21,7 @@ export const HomePage = () => {
   const { isConnected, address } = useAccount();
   const chainId = useChainId();
 
-  const { key, setKey, chainId: selectedChainId } = usePlayer();
+  const { key, setKey, chainId: selectedChainId, setPlayer } = usePlayer();
 
   const correctlyConnected = useMemo(
     () =>
@@ -47,6 +47,7 @@ export const HomePage = () => {
     abi: WEBTREE_ABI,
     functionName: "users",
     args: address ? [address] : undefined,
+    onSuccess: (data) => setPlayer(data),
   });
 
   return (
@@ -75,7 +76,7 @@ export const HomePage = () => {
               />
             </>
           ) : (
-            <Game />
+            <Game toggleQuery={() => setToggle((e) => !e)} />
           )}
         </Stack>
       </Section>
