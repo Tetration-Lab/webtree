@@ -6,6 +6,7 @@ import {OpenAI} from 'openai'
 import NodeCache from 'node-cache'
 import {Story} from '@/interfaces/story'
 import { keywordMap } from '@/constants/keywords'
+import {chains} from '@/constants/web3'
 
 const choiceCache = new NodeCache( { stdTTL: 120, checkperiod: 300 } );
 const openai = new OpenAI();
@@ -15,8 +16,13 @@ async function writeStoryWithRetry(theme: string, yesStat: string, noStat: strin
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
-            const random = Math.round(Math.random() * 1000000) % keywordMap[chainId].length
-            const keyword = keywordMap[chainId][random]
+            let keyword = ""
+            if (!keywordMap[chainId] || keywordMap[chainId].length == 0) {
+              keyword = ""
+            } else {
+              const random = Math.round(Math.random() * 1000000) % keywordMap[chainId].length
+              keyword = keywordMap[chainId][random]
+            }
             return await writeStory(theme, yesStat, noStat, keyword);
         } catch (error) {
             console.log(error)
@@ -84,26 +90,20 @@ export default async function handler(
     'Religion': 2,
     'Nature': 3
   }
-  const themeMap: Record<number,string> = {
-    534351: `autumn brown-ish medieval`,
-    534352: `autumn brown-ish medieval`,
-    5001: `futuristic modern neon teal`,
-    5000: `futuristic modern neon teal`,
-    1442: `fantasy mystic grand dark purple`,
-    1101: `fantasy mystic grand dark purple`,
-    84532: `dark-blue moonlight elf-y world treew dark blue and black`,
-    8453: `dark-blue moonlight elf-y world treew dark blue and black`
-  }
   const seed = req.query.seed as Hex
   const chainId:number = parseInt(req.query.chainId as string)
-  const theme:string = themeMap[chainId]
-  console.log(seed, theme)
+  const chain = chains.find((chain) => chain.id == chainId)
+  if (!chain) {
+    return res.status(404);
+  }
+  const theme:string = chain.world.description
   const choiceKey = `${seed}_${chainId}`
   if (choiceCache.has(choiceKey)){
     const stories = choiceCache.get<Story[]>(choiceKey) || []
     return res.status(200).json(stories)
   }
   const points = seedToChoices(seed)
+  console.log(chain.id)
   let stories:Story[] = new Array<Story>(5)
   await Promise.all(
     points.map(async (point, index) => {
