@@ -21,6 +21,12 @@ export default async function handler(
   if (req.method != 'GET'){
     return res.status(404)
   }
+  const statIndexMap = {
+    'Gold': 0,
+    'Science': 1,
+    'Religion': 2,
+    'Nature': 3
+  }
   const seed = req.query.seed as Hex
   const chainId = req.query.chainId as string || ''
   const theme = `autumn brown-ish medieval`
@@ -31,15 +37,13 @@ export default async function handler(
     let yesStat = ''
     let noStat = ''
     point.plus.forEach((stat) => {
-      yesStat += `+1 ${stat} `
-      noStat += `-1 ${stat} `
+      yesStat += `+${point.stats[statIndexMap[stat]]} ${stat} `
+      noStat += `-${point.stats[statIndexMap[stat]]} ${stat} `
     })
     point.minus.forEach((stat) => {
-      yesStat += `-1 ${stat} `
-      noStat += `+1 ${stat} `
+      yesStat += `-${point.stats[statIndexMap[stat]]} ${stat} `
+      noStat += `+${point.stats[statIndexMap[stat]]} ${stat} `
     })
-    console.log(yesStat)
-    console.log(noStat)
     const response = await openai.chat.completions.create({
       messages: [{
         role:'system',
@@ -67,7 +71,7 @@ export default async function handler(
         - no: ${noStat}`
       }],
       model: 'gpt-3.5-turbo-16k-0613',
-      temperature: 0.5
+      temperature: 1.5
     })
     stories[index] = {
       ...JSON.parse(response.choices[0].message.content || ''),
