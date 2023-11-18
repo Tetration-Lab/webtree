@@ -11,20 +11,14 @@ export const seedToChoices = (seed: Hex) => {
 
     const e1 = r[0];
     const e2 = r[1];
-    const p1 = r[2];
-    const p2 = r[3];
+    const e3 = r[2];
 
     let stats = [0, 0, 0, 0];
 
-    stats[0] += Number((e1 & 3) === 0) * (3 - (p1 & 7));
-    stats[1] += Number((e1 & 3) === 1) * (3 - (p1 & 7));
-    stats[2] += Number((e1 & 3) === 2) * (3 - (p1 & 7));
-    stats[3] += Number((e1 & 3) === 3) * (3 - (p1 & 7));
-
-    stats[0] += Number((e2 & 3) === 0) * (3 - (p2 & 7));
-    stats[1] += Number((e2 & 3) === 1) * (3 - (p2 & 7));
-    stats[2] += Number((e2 & 3) === 2) * (3 - (p2 & 7));
-    stats[3] += Number((e2 & 3) === 3) * (3 - (p2 & 7));
+    stats[0] += 4 - (e1 & 7);
+    stats[1] += 4 - (e2 & 7);
+    stats[2] += 4 - (e3 & 7);
+    stats[3] += 10 - (e1 & 7) - (e2 & 7) - (e3 & 7);
 
     const plus: Stat[] = [];
     const minus: Stat[] = [];
