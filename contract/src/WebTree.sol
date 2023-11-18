@@ -4,29 +4,17 @@ import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254V.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {ChoiceUltraVerifier} from "./choice_plonk_vk.sol";
 import {DecryptUltraVerifier} from "./decrypt_plonk_vk.sol";
+import {MiMC7} from "./MiMC7.sol";
 
 contract WebTree is Ownable {
-    event Brag(address indexed user, uint256 s1, uint256 s2, uint256 s3);
     address public backend;
-    ChoiceUltraVerifier public actionVerifier;
+    ChoiceUltraVerifier public choiceVerifier;
     DecryptUltraVerifier public decryptVerifier;
 
-    constructor(
-        address _backend,
-        address owner,
-        address actionVeifier,
-        address decryptVerifier,
-        EdOnBN254.Affine memory worldElgamalPkH
-    ) Ownable(owner) {
-        backend = _backend;
-        epochNo = 0;
-        epochSeed = block.timestamp;
-        actionVerifier = ChoiceUltraVerifier(actionVeifier);
-        decryptVerifier = DecryptUltraVerifier(decryptVerifier);
-        worldTreeLatest = 1337;
-        worldTreeEncrypted = encrypt(1337, worldElgamalPkH);
-        worldElgamalPkH = worldElgamalPkH;
-    }
+    uint256 public constant DEFAULT_STAT = 100;
+    uint256 public constant DEFAULT_GLOBAL_STAT = 1337;
+
+    event Brag(address indexed user, uint256 s1, uint256 s2, uint256 s3);
 
     enum STATUS {
         FREE,
@@ -34,41 +22,68 @@ contract WebTree is Ownable {
     }
 
     struct ActionArgs {
-        ECypher es1;
-        ECypher es2;
-        ECypher es3;
-        ECypher esworld;
-        uint[4] randomness;
+        CipherText es1;
+        CipherText es2;
+        CipherText es3;
+        CipherText esworld;
     }
 
-    struct ECypher {
+    struct CipherText {
         EdOnBN254.Affine c1;
         EdOnBN254.Affine c2;
     }
 
-    uint256 public worldTreeLatest;
-    ECypher public worldTreeEncrypted;
-    uint256 public druitBalance;
-    EdOnBN254.Affine public worldElgamalPkH;
-    uint256 public epochNo;
-    uint256 public epochSeed;
+    uint256 public sworld;
+    CipherText public esworld;
+
+    EdOnBN254.Affine public worldPublicKey;
+
+    uint32 public epoch;
+    bytes32 public epochSeed;
+
+    uint256 public druidBalance;
+    uint256 public druidSpent;
+    uint256 public druidActionCount;
 
     struct UserStat {
         STATUS status;
-        EdOnBN254.Affine elgamalPkH;
-        ECypher es1;
-        ECypher es2;
-        ECypher es3;
-        uint256 lastActionEpoch;
-        bytes32 commit;
+        EdOnBN254.Affine publicKey;
+        bytes32 commitment;
+        CipherText es1;
+        CipherText es2;
+        CipherText es3;
+        uint256 totalDonations;
+        uint32 lastActionEpoch;
+        uint32 totalActions;
     }
 
     mapping(address => UserStat) users;
 
+    constructor(
+        address _backend,
+        address owner,
+        address _choiceVeifier,
+        address _decryptVerifier,
+        EdOnBN254.Affine memory _worldPublicKey
+    ) Ownable(owner) {
+        backend = _backend;
+        epoch = 0;
+        epochSeed = keccak256(
+            abi.encodePacked(blockhash(block.number - 1), block.timestamp)
+        );
+        choiceVerifier = ChoiceUltraVerifier(_choiceVeifier);
+        decryptVerifier = DecryptUltraVerifier(_decryptVerifier);
+
+        sworld = DEFAULT_GLOBAL_STAT;
+        esworld = encrypt(DEFAULT_GLOBAL_STAT, _worldPublicKey);
+
+        worldPublicKey = _worldPublicKey;
+    }
+
     function encrypt(
         uint num,
         EdOnBN254.Affine memory elgamalPkH
-    ) public view returns (ECypher memory) {
+    ) public view returns (CipherText memory) {
         uint y = 1;
         EdOnBN254.Affine memory m = EdOnBN254.mul(
             EdOnBN254.primeSubgroupGenerator(),
@@ -80,25 +95,46 @@ contract WebTree is Ownable {
             y
         );
         EdOnBN254.Affine memory c2 = EdOnBN254.add(m, s);
-        return ECypher(c1, c2);
+        return CipherText(c1, c2);
+    }
+
+    function druid() public view returns (uint256, uint256, uint256) {
+        return (druidBalance, druidSpent, druidActionCount);
+    }
+
+    function druidAct(uint256 spend, uint256 _sworld) public {
+        require(msg.sender == backend, "only backend");
+        druidActionCount += 1;
+        druidBalance -= spend;
+        druidSpent += spend;
+        CipherText memory ciphertext = encrypt(_sworld, worldPublicKey);
+        esworld.c1 = EdOnBN254.add(esworld.c1, ciphertext.c1);
+        esworld.c2 = EdOnBN254.add(esworld.c2, ciphertext.c2);
     }
 
     function endEpoch(uint worldTreeLatest) public {
         require(msg.sender == backend, "only backend");
         worldTreeLatest = worldTreeLatest; // no proof for now
-        epochNo += 1;
-        epochSeed = block.timestamp;
+        epoch += 1;
+        epochSeed = keccak256(
+            abi.encodePacked(blockhash(block.number - 1), block.timestamp)
+        );
     }
 
-    function join(EdOnBN254.Affine memory _elgamalPkH) public payable {
+    function join(EdOnBN254.Affine memory _publicKey) public {
         require(users[msg.sender].status == STATUS.FREE, "already joined");
-        users[msg.sender].status = STATUS.JOINED;
-        users[msg.sender].elgamalPkH = _elgamalPkH;
-        druitBalance += msg.value;
-        users[msg.sender].es1 = encrypt(100, _elgamalPkH);
-        users[msg.sender].es2 = encrypt(100, _elgamalPkH);
-        users[msg.sender].es3 = encrypt(100, _elgamalPkH);
-        users[msg.sender].lastActionEpoch = 0;
+        UserStat memory stat = UserStat({
+            status: STATUS.JOINED,
+            publicKey: _publicKey,
+            commitment: 0,
+            es1: encrypt(DEFAULT_STAT, _publicKey),
+            es2: encrypt(DEFAULT_STAT, _publicKey),
+            es3: encrypt(DEFAULT_STAT, _publicKey),
+            lastActionEpoch: epoch,
+            totalDonations: 0,
+            totalActions: 0
+        });
+        users[msg.sender] = stat;
     }
 
     function brag(uint s1, uint s2, uint s3, bytes calldata proof) public {
@@ -110,9 +146,52 @@ contract WebTree is Ownable {
         users[msg.sender].status = STATUS.FREE;
     }
 
-    function action(ActionArgs memory act, bytes memory proof) public {
+    function donate() public payable {
         require(users[msg.sender].status == STATUS.JOINED, "not joined");
-        require(users[msg.sender].lastActionEpoch < epochNo, "already acted");
-        users[msg.sender].lastActionEpoch = epochNo;
+        users[msg.sender].totalDonations += msg.value;
+        druidBalance += msg.value;
+    }
+
+    function action(ActionArgs memory act, bytes memory proof) public {
+        UserStat storage stat = users[msg.sender];
+        require(stat.status == STATUS.JOINED, "not joined");
+        require(stat.lastActionEpoch < epoch, "already acted");
+        stat.lastActionEpoch = epoch;
+        stat.totalActions += 1;
+
+        bytes32[] memory inputs = new bytes32[](22);
+        inputs[0] = bytes32(stat.publicKey.x);
+        inputs[1] = bytes32(stat.publicKey.y);
+        inputs[2] = bytes32(worldPublicKey.x);
+        inputs[3] = bytes32(worldPublicKey.y);
+        inputs[4] = epochSeed;
+        inputs[5] = stat.commitment;
+        inputs[6] = bytes32(act.es1.c1.x);
+        inputs[7] = bytes32(act.es1.c1.y);
+        inputs[8] = bytes32(act.es1.c2.x);
+        inputs[9] = bytes32(act.es1.c2.y);
+        inputs[10] = bytes32(act.es2.c1.x);
+        inputs[11] = bytes32(act.es2.c1.y);
+        inputs[12] = bytes32(act.es2.c2.x);
+        inputs[13] = bytes32(act.es2.c2.y);
+        inputs[14] = bytes32(act.es3.c1.x);
+        inputs[15] = bytes32(act.es3.c1.y);
+        inputs[16] = bytes32(act.es3.c2.x);
+        inputs[17] = bytes32(act.es3.c2.y);
+        inputs[18] = bytes32(act.esworld.c1.x);
+        inputs[19] = bytes32(act.esworld.c1.y);
+        inputs[20] = bytes32(act.esworld.c2.x);
+        inputs[21] = bytes32(act.esworld.c2.y);
+
+        require(choiceVerifier.verify(proof, inputs), "Invalid proof");
+
+        stat.es1.c1 = EdOnBN254.add(stat.es1.c1, act.es1.c1);
+        stat.es1.c2 = EdOnBN254.add(stat.es1.c2, act.es1.c2);
+        stat.es2.c1 = EdOnBN254.add(stat.es2.c1, act.es2.c1);
+        stat.es2.c2 = EdOnBN254.add(stat.es2.c2, act.es2.c2);
+        stat.es3.c1 = EdOnBN254.add(stat.es3.c1, act.es3.c1);
+        stat.es3.c2 = EdOnBN254.add(stat.es3.c2, act.es3.c2);
+        esworld.c1 = EdOnBN254.add(esworld.c1, act.esworld.c1);
+        esworld.c2 = EdOnBN254.add(esworld.c2, act.esworld.c2);
     }
 }
