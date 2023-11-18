@@ -19,8 +19,8 @@ contract Deploy is Script {
             address(this),
             address(choiceVerifier),
             EdOnBN254.Affine(
-                0xe1c6db864b52cd4a8dfbdba4f439107487a48ec111dca09f53ab5ab714604e02,
-                0xbc7f1792d774c8024604f721b7da02b1f2968064aa65b6aaf23505af64e6d91e
+                0x776d39f138259c3ed9a5020c1939e73d35d2fb28b0f84b8e7b3f8a0bd1092f5,
+                0x27de5e51b49cb749a252417f88f796e4413cd425ceec0ff700ab20c0810e1839
             )
         );
 

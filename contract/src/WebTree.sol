@@ -36,7 +36,7 @@ contract WebTree is Ownable {
     EdOnBN254.Affine public worldPublicKey;
 
     uint32 public epoch;
-    bytes32 public epochSeed;
+    uint256 public epochTime;
 
     uint256 public druidBalance;
     uint256 public druidSpent;
@@ -72,9 +72,7 @@ contract WebTree is Ownable {
     ) Ownable(owner) {
         backend = _backend;
         epoch = 0;
-        epochSeed = keccak256(
-            abi.encodePacked(blockhash(block.number - 1), block.timestamp)
-        );
+        epochTime = block.timestamp;
         choiceVerifier = ChoiceUltraVerifier(_choiceVeifier);
 
         sworld = DEFAULT_GLOBAL_STAT;
@@ -119,17 +117,18 @@ contract WebTree is Ownable {
         require(msg.sender == backend, "only backend");
         worldTreeLatest = worldTreeLatest; // no proof for now
         epoch += 1;
-        epochSeed = keccak256(
-            abi.encodePacked(blockhash(block.number - 1), block.timestamp)
-        );
+        epochTime = block.timestamp;
     }
 
-    function join(EdOnBN254.Affine memory _publicKey) public {
+    function join(
+        bytes32 commitment,
+        EdOnBN254.Affine memory _publicKey
+    ) public {
         require(users[msg.sender].status == STATUS.FREE, "already joined");
-        UserStat memory stat = UserStat({
+        users[msg.sender] = UserStat({
             status: STATUS.JOINED,
             publicKey: _publicKey,
-            commitment: 0,
+            commitment: commitment,
             es1: encrypt(DEFAULT_STAT, _publicKey),
             es2: encrypt(DEFAULT_STAT, _publicKey),
             es3: encrypt(DEFAULT_STAT, _publicKey),
@@ -137,7 +136,6 @@ contract WebTree is Ownable {
             totalDonations: 0,
             totalActions: 0
         });
-        users[msg.sender] = stat;
     }
 
     function bragsPaginated(
@@ -154,7 +152,7 @@ contract WebTree is Ownable {
         return result;
     }
 
-    function brag(uint s1, uint s2, uint s3) public {
+    function brag(uint s1, uint s2, uint s3, bytes calldata proof) public {
         brags.push(Brag(msg.sender, s1, s2, s3, epoch));
         emit BragShouted(msg.sender, s1, s2, s3);
     }
@@ -182,7 +180,7 @@ contract WebTree is Ownable {
         inputs[1] = bytes32(stat.publicKey.y);
         inputs[2] = bytes32(worldPublicKey.x);
         inputs[3] = bytes32(worldPublicKey.y);
-        inputs[4] = epochSeed;
+        inputs[4] = bytes32(epochTime);
         inputs[5] = stat.commitment;
         inputs[6] = bytes32(act.es1.c1.x);
         inputs[7] = bytes32(act.es1.c1.y);
