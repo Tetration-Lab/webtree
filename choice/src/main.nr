@@ -30,20 +30,15 @@ fn main(
         this_rand /= 1024;
         let e1 = r[0];
         let e2 = r[1];
-        let p1 = r[2];
-        let p2 = r[3];
-
+        let e3 = r[3];
+        
         assert((private_choices[i] == 0) | (private_choices[i] == 1));
         // [select if effect stat e] [random [-4, 3]] [pick as is or flip]
-        stat_0 += ((e1 & 3 == 0) as Field) * (3 - ((p1 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_1 += ((e1 & 3 == 1) as Field) * (3 - ((p1 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_2 += ((e1 & 3 == 2) as Field) * (3 - ((p1 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_3 += ((e1 & 3 == 3) as Field) * (3 - ((p1 & 7) as Field)) * (1 - 2 * private_choices[i]);
-
-        stat_0 += ((e2 & 3 == 0) as Field) * (3 - ((p2 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_1 += ((e2 & 3 == 1) as Field) * (3 - ((p2 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_2 += ((e2 & 3 == 2) as Field) * (3 - ((p2 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_3 += ((e2 & 3 == 3) as Field) * (3 - ((p2 & 7) as Field)) * (1 - 2 * private_choices[i]);
+        stat_0 += (4 - ((e1 & 7) as Field)) * (1 - 2 * private_choices[i]);
+        stat_1 += (4 - ((e2 & 7) as Field)) * (1 - 2 * private_choices[i]);
+        stat_2 += (4 - ((e3 & 7) as Field)) * (1 - 2 * private_choices[i]);
+        stat_3 += (10 - ((e1 & 7) + (e2 & 7) + (e3 & 7)) as Field) * (1 - 2 * private_choices[i]);
+        
     }
 
     let mut stats = [(Point::zero(), Point::zero()); 4];
