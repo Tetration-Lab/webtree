@@ -90,6 +90,7 @@ export const useProver = () => {
           public_commitment: key.commitment,
           preimage: key.raw,
           private_choices: choices.map((choice) => (choice ? 0 : 1)),
+          private_key: key.raw,
         };
         const result = await noir.execute(witness);
         console.log("result", result);
@@ -121,6 +122,10 @@ export const useProver = () => {
     [data, key]
   );
 
+  const reset = () => {
+    setProof(null);
+  };
+
   return {
     isProving,
     proof,
@@ -128,5 +133,6 @@ export const useProver = () => {
     isLoading,
     epochSeed: data?.[0]?.result,
     seed,
+    reset,
   };
 };
