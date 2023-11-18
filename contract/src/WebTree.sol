@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
-import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254.sol";
+import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254V.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import {ChoiceUltraVerifier} from "./choice_plonk_vk.sol";
+import {DecryptUltraVerifier} from "./decrypt_plonk_vk.sol";
 
 contract WebTree is Ownable {
     event Brag(address indexed user, uint256 s1, uint256 s2, uint256 s3);
     address public backend;
-    address public actionVerifier;
-    address public decryptVerifier;
+    ChoiceUltraVerifier public actionVerifier;
+    DecryptUltraVerifier public decryptVerifier;
 
     constructor(
         address _backend,
@@ -19,8 +21,8 @@ contract WebTree is Ownable {
         backend = _backend;
         epochNo = 0;
         epochSeed = block.timestamp;
-        actionVerifier = actionVeifier;
-        decryptVerifier = decryptVerifier;
+        actionVerifier = ChoiceUltraVerifier(actionVeifier);
+        decryptVerifier = DecryptUltraVerifier(decryptVerifier);
         worldTreeLatest = 1337;
         worldTreeEncrypted = encrypt(1337, worldElgamalPkH);
         worldElgamalPkH = worldElgamalPkH;
