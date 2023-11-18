@@ -15,7 +15,7 @@ import {
 import _ from "lodash";
 import { generatePrivateKey } from "viem/accounts";
 import Lottie from "react-lottie-player";
-import { useCallback, useState } from "react";
+import { createRef, useCallback, useMemo, useState } from "react";
 import { Stat, statByIndex } from "@/interfaces/stats";
 import TinderCard from "react-tinder-card";
 import { useChainId } from "wagmi";
@@ -51,6 +51,10 @@ export const Game = () => {
     },
     cacheTime: 100000,
   });
+  const refs = useMemo(
+    () => _.range(cards?.length ?? 0).map(() => createRef<HTMLDivElement>()),
+    [cards]
+  );
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
@@ -123,9 +127,9 @@ export const Game = () => {
                   bg={
                     swiped
                       ? current > 0
-                        ? "green.500"
+                        ? "green.400"
                         : current < 0
-                        ? "red.500"
+                        ? "red.400"
                         : "chakra-body-text"
                       : "chakra-body-text"
                   }
@@ -142,56 +146,86 @@ export const Game = () => {
           );
         })}
       </HStack>
-      {!cards || isLoading ? (
-        <CircularProgress isIndeterminate color="primary.500" />
-      ) : (
-        <>
-          <Text>
-            {currentCardIndex >= cards.length ? (
-              "Empty"
-            ) : (
+      <Stack minH="400px" pos="relative" justify="center">
+        {!cards || isLoading ? (
+          <Stack align="center">
+            <Box boxSize="64px">
+              <Lottie path="/icons/search.json" loop play />
+            </Box>
+            <Text align="center">
+              As the morning unfolds, there's a vibe in the air. Big decisions
+              on the horizon, my friend. Get ready for some action!
+            </Text>
+          </Stack>
+        ) : (
+          <>
+            <Text>
+              {currentCardIndex >= cards.length ? (
+                "Empty"
+              ) : (
+                <>
+                  {currentCardIndex + 1} / {cards.length}
+                </>
+              )}
+            </Text>
+            {currentCardIndex < cards.length && (
               <>
-                {currentCardIndex + 1} / {cards.length}
+                <Stack pos="relative" h="400px">
+                  <Heading
+                    pos="absolute"
+                    left="200px"
+                    top="50%"
+                    transform="translateY(-100%)"
+                  >
+                    Yes
+                  </Heading>
+                  <Heading
+                    pos="absolute"
+                    right="200px"
+                    top="50%"
+                    transform="translateY(-100%)"
+                  >
+                    No
+                  </Heading>
+                  {_.reverse(cards).map((card, _i) => {
+                    const i = cards.length - _i - 1;
+                    return (
+                      <TinderCard
+                        key={`${randomness}${i}`}
+                        swipeRequirementType="velocity"
+                        preventSwipe={["up", "down"]}
+                        onSwipe={(dir) => onSwipe(dir === "right")}
+                      >
+                        <Card
+                          ref={refs[i]}
+                          userSelect="none"
+                          pointerEvents={
+                            i === currentCardIndex ? "auto" : "none"
+                          }
+                          transition="all 0.3s ease-in-out"
+                          pos="absolute"
+                          zIndex={cards.length - i}
+                          top={0}
+                          left="50%"
+                          transform="translateX(-50%)"
+                          h="350px"
+                          aspectRatio={1 / 1.5}
+                          overflowY="auto"
+                          border="1.5px solid"
+                          borderColor="chakra-body-text"
+                        >
+                          <Heading>{card.title}</Heading>
+                          <Text>{card.description}</Text>
+                        </Card>
+                      </TinderCard>
+                    );
+                  })}
+                </Stack>
               </>
             )}
-          </Text>
-          <Stack pos="relative" h="400px">
-            {currentCardIndex <= cards.length &&
-              _.reverse(cards).map((card, _i) => {
-                const i = cards.length - _i - 1;
-                return (
-                  <TinderCard
-                    key={`${randomness}${i}`}
-                    swipeRequirementType="velocity"
-                    preventSwipe={["up", "down"]}
-                    onSwipe={(dir) => onSwipe(dir === "right")}
-                  >
-                    <Card
-                      userSelect="none"
-                      pointerEvents={i === currentCardIndex ? "auto" : "none"}
-                      //opacity={i === currentCardIndex ? 1 : 0}
-                      //visibility={i === currentCardIndex ? "visible" : "hidden"}
-                      transition="all 0.3s ease-in-out"
-                      pos="absolute"
-                      zIndex={cards.length - i}
-                      top={0}
-                      left="50%"
-                      transform="translateX(-50%)"
-                      h="350px"
-                      aspectRatio={1 / 1.5}
-                      overflowY="auto"
-                      border="1.5px solid"
-                      borderColor="chakra-body-text"
-                    >
-                      <Heading>{card.title}</Heading>
-                      <Text>{card.description}</Text>
-                    </Card>
-                  </TinderCard>
-                );
-              })}
-          </Stack>
-        </>
-      )}
+          </>
+        )}
+      </Stack>
       <Button onClick={random}>Random</Button>
     </>
   );
