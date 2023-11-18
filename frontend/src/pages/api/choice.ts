@@ -9,6 +9,7 @@ import { keywordMap } from '@/constants/keywords'
 import {chains} from '@/constants/web3'
 
 const choiceCache = new NodeCache( { stdTTL: 120, checkperiod: 300 } );
+const maxRetries = 5
 const openai = new OpenAI();
 
 async function writeStoryWithRetry(theme: string, yesStat: string, noStat: string, chainId: number, maxRetries: number) {
@@ -126,7 +127,7 @@ export default async function handler(
           noStat += `+${ -1 * statPoint} ${stat} `;
         }
       });
-      const story = await writeStoryWithRetry(theme, yesStat, noStat, chainId, 3)
+      const story = await writeStoryWithRetry(theme, yesStat, noStat, chainId, maxRetries)
       stories[index] = story
   }))
   choiceCache.set(choiceKey, stories)
