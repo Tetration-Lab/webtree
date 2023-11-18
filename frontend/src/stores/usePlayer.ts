@@ -33,7 +33,7 @@ export const usePlayer = create<PlayerStore>((set) => ({
     const babyjubjub = await buildBabyjub();
     const keyModFr = fromHex(key.key, "bigint") % babyjubjub.order;
     const mimc = await buildMimc7();
-    const randomness = mimc.hash(keyModFr, 0);
+    const randomness = mimc.multiHash([keyModFr], 0);
     const publicKey = babyjubjub.mulPointEscalar(
       babyjubjub.Generator,
       keyModFr
