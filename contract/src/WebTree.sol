@@ -3,13 +3,10 @@ pragma solidity ^0.8.13;
 import {EdOnBN254} from "solidity-ed-on-bn254/EdOnBN254V.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {ChoiceUltraVerifier} from "./choice_plonk_vk.sol";
-import {DecryptUltraVerifier} from "./decrypt_plonk_vk.sol";
-import {MiMC7} from "./MiMC7.sol";
 
 contract WebTree is Ownable {
     address public backend;
     ChoiceUltraVerifier public choiceVerifier;
-    DecryptUltraVerifier public decryptVerifier;
 
     uint256 public constant DEFAULT_STAT = 100;
     uint256 public constant DEFAULT_GLOBAL_STAT = 1337;
@@ -71,7 +68,6 @@ contract WebTree is Ownable {
         address _backend,
         address owner,
         address _choiceVeifier,
-        address _decryptVerifier,
         EdOnBN254.Affine memory _worldPublicKey
     ) Ownable(owner) {
         backend = _backend;
@@ -80,7 +76,6 @@ contract WebTree is Ownable {
             abi.encodePacked(blockhash(block.number - 1), block.timestamp)
         );
         choiceVerifier = ChoiceUltraVerifier(_choiceVeifier);
-        decryptVerifier = DecryptUltraVerifier(_decryptVerifier);
 
         sworld = DEFAULT_GLOBAL_STAT;
         esworld = encrypt(DEFAULT_GLOBAL_STAT, _worldPublicKey);
@@ -159,7 +154,7 @@ contract WebTree is Ownable {
         return result;
     }
 
-    function brag(uint s1, uint s2, uint s3, bytes calldata proof) public {
+    function brag(uint s1, uint s2, uint s3) public {
         brags.push(Brag(msg.sender, s1, s2, s3, epoch));
         emit BragShouted(msg.sender, s1, s2, s3);
     }
