@@ -58,7 +58,7 @@ export const Game = () => {
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
 
-  const [stats, setStats] = useState(_.mapValues(STATS, () => 50));
+  const [stats, setStats] = useState(_.mapValues(STATS, (v) => v.default));
 
   const random = () => {
     setRandomness(generatePrivateKey());
@@ -94,7 +94,11 @@ export const Game = () => {
     <>
       <HStack>
         {_.entries(STATS).map(([key, stat], i) => {
-          const percent = _.clamp(stats[key as Stat], 0, 100);
+          const percent = _.clamp(
+            (stats[key as Stat] * 50) / stat.default,
+            0,
+            100
+          );
           const current = cards?.[currentCardIndex]?.stats?.[i] ?? 0;
           return (
             <Stack key={key} align="center">
