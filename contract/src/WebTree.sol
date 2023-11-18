@@ -14,7 +14,7 @@ contract WebTree is Ownable {
     uint256 public constant DEFAULT_STAT = 100;
     uint256 public constant DEFAULT_GLOBAL_STAT = 1337;
 
-    event Brag(address indexed user, uint256 s1, uint256 s2, uint256 s3);
+    event BragShouted(address indexed user, uint256 s1, uint256 s2, uint256 s3);
 
     enum STATUS {
         FREE,
@@ -56,8 +56,16 @@ contract WebTree is Ownable {
         uint32 lastActionEpoch;
         uint32 totalActions;
     }
+    mapping(address => UserStat) public users;
 
-    mapping(address => UserStat) users;
+    struct Brag {
+        address user;
+        uint256 s1;
+        uint256 s2;
+        uint256 s3;
+        uint32 epoch;
+    }
+    Brag[] public brags;
 
     constructor(
         address _backend,
@@ -137,8 +145,23 @@ contract WebTree is Ownable {
         users[msg.sender] = stat;
     }
 
+    function bragsPaginated(
+        uint256 start,
+        uint256 count
+    ) public view returns (Brag[] memory) {
+        uint256 limit = brags.length > start + count
+            ? count
+            : brags.length - start;
+        Brag[] memory result = new Brag[](limit);
+        for (uint256 i = 0; i < limit; i++) {
+            result[i] = brags[start + i];
+        }
+        return result;
+    }
+
     function brag(uint s1, uint s2, uint s3, bytes calldata proof) public {
-        emit Brag(msg.sender, s1, s2, s3);
+        brags.push(Brag(msg.sender, s1, s2, s3, epoch));
+        emit BragShouted(msg.sender, s1, s2, s3);
     }
 
     function rageQuit() public {
