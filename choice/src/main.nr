@@ -33,7 +33,7 @@ fn main(
         let e3 = r[3];
         
         assert((private_choices[i] == 0) | (private_choices[i] == 1));
-        // [select if effect stat e] [random [-4, 3]] [pick as is or flip]
+        // total sum = 1. s0-3 = rand [-3, 4]. s4 = 1 - (s0-3) 
         stat_0 += (4 - ((e1 & 7) as Field)) * (1 - 2 * private_choices[i]);
         stat_1 += (4 - ((e2 & 7) as Field)) * (1 - 2 * private_choices[i]);
         stat_2 += (4 - ((e3 & 7) as Field)) * (1 - 2 * private_choices[i]);
