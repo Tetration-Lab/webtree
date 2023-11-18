@@ -119,11 +119,11 @@ export default async function handler(
       point.minus.forEach((stat) => {
         const statPoint = parseInt(point.stats[statIndexMap[stat]].toString())
         if (statPoint > 0) {
-          yesStat += `${-1 * statPoint} ${stat} `;
+          yesStat += `${statPoint} ${stat} `;
           noStat += `+${statPoint} ${stat} `;
         } else {
-          yesStat += `+${-1 *statPoint} ${stat} `;
-          noStat += `${statPoint} ${stat} `;
+          yesStat += `${statPoint} ${stat} `;
+          noStat += `+${ -1 * statPoint} ${stat} `;
         }
       });
       const story = await writeStoryWithRetry(theme, yesStat, noStat, chainId, 3)
