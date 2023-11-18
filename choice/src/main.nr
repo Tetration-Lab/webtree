@@ -37,8 +37,7 @@ fn main(
         stat_0 += (4 - ((e1 & 7) as Field)) * (1 - 2 * private_choices[i]);
         stat_1 += (4 - ((e2 & 7) as Field)) * (1 - 2 * private_choices[i]);
         stat_2 += (4 - ((e3 & 7) as Field)) * (1 - 2 * private_choices[i]);
-        stat_3 += (10 - ((e1 & 7) + (e2 & 7) + (e3 & 7)) as Field) * (1 - 2 * private_choices[i]);
-        
+        stat_3 += (((e1 & 7) + (e2 & 7) + (e3 & 7)) as Field - 11) * (1 - 2 * private_choices[i]);   
     }
 
     let mut stats = [(Point::zero(), Point::zero()); 4];
