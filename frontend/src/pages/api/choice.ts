@@ -48,7 +48,7 @@ async function writeStory(theme: string, yesStat: string, noStat: string, keywor
       - story should have no longer than 50 words.
       - do not mention about the country background story
       - add some the short description of the outcome of the yes/no choice. it should have no longer than 10 words. do not include the +/- stat in the outcome description
-      - story description and title should include ${keyword} and be creative & surprise as much as possible
+      - story description and title can include ${keyword} for variety of content and be creative & surprise as much as possible
       - You should ONLY response in the JSON format as described below:
         - title: story title
         - emoji: emoji that represent the story title
@@ -67,8 +67,6 @@ async function writeStory(theme: string, yesStat: string, noStat: string, keywor
     model: 'gpt-4-1106-preview',
     temperature: 1.2
   })
-  console.log(keyword)
-  console.log(response.choices[0].message.content)
   return {
     ...JSON.parse(response.choices[0].message.content || ''),
     yesStat: yesStat.trim(),
@@ -103,7 +101,6 @@ export default async function handler(
     return res.status(200).json(stories)
   }
   const points = seedToChoices(seed)
-  console.log(chain.id)
   let stories:Story[] = new Array<Story>(5)
   await Promise.all(
     points.map(async (point, index) => {
