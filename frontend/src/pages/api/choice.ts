@@ -36,13 +36,13 @@ async function writeStory(theme: string, yesStat: string, noStat: string): Promi
       - Religion, is the stat of your country faith & religion
       - Nature, is the stat of your country natural resources
       There are some rules that you need to follow:
-      - story should have no longer than 25 words.
+      - story should have no longer than 50 words.
       - do not mention about the country background story
       - add some the short description of the outcome of the yes/no choice. it should have no longer than 10 words. do not include the +/- stat in the outcome description
       - You should ONLY response in the JSON format as described below:
         - title: story title
         - emoji: emoji that represent the story title
-        - description: story description. do not include +/- stat here
+        - description: story description. do not include +/- stat here. should have at least 10 words but no longer than 50 words
         - yes: yes choice outcome description
         - no: no choice outcome description
       }
@@ -90,7 +90,6 @@ export default async function handler(
   }
   const seed = req.query.seed as Hex
   const chainId:number = parseInt(req.query.chainId as string)
-  console.log(seed, chainId)
   const theme:string = themeMap[chainId]
   const choiceKey = `${seed}_${chainId}`
   if (choiceCache.has(choiceKey)){
@@ -101,17 +100,27 @@ export default async function handler(
   let stories:Story[] = new Array<Story>(5)
   await Promise.all(
     points.map(async (point, index) => {
-      console.log(point)
       let yesStat = "";
       let noStat = "";
       point.plus.forEach((stat) => {
         const statPoint = parseInt(point.stats[statIndexMap[stat]].toString())
-        yesStat += `${parseInt(point.stats[statIndexMap[stat]].toString())} ${stat} `;
-        noStat += `${-1 * parseInt(point.stats[statIndexMap[stat]].toString())} ${stat} `;
+        if (statPoint > 0) {
+          yesStat += `+${statPoint} ${stat} `;
+          noStat += `-${statPoint} ${stat} `;
+        } else {
+          yesStat += `${statPoint} ${stat} `;
+          noStat += `+${-1 * statPoint} ${stat} `;
+        }
       });
       point.minus.forEach((stat) => {
-        yesStat += `${parseInt(point.stats[statIndexMap[stat]].toString())} ${stat} `;
-        noStat += `${-1 * parseInt(point.stats[statIndexMap[stat]].toString())} ${stat} `;
+        const statPoint = parseInt(point.stats[statIndexMap[stat]].toString())
+        if (statPoint > 0) {
+          yesStat += `${-1 * statPoint} ${stat} `;
+          noStat += `+${statPoint} ${stat} `;
+        } else {
+          yesStat += `+${-1 *statPoint} ${stat} `;
+          noStat += `${statPoint} ${stat} `;
+        }
       });
       const story = await writeStoryWithRetry(theme, yesStat, noStat, 3)
       stories[index] = story
