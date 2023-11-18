@@ -4,15 +4,7 @@ import {seedToChoices} from '@/utils/seed'
 import { Hex, toHex } from 'viem'
 import {OpenAI} from 'openai'
 import NodeCache from 'node-cache'
-
-interface Story {
-  title: string
-  description: string
-  yes: string
-  no: string
-  yesStat: string
-  noStat: string
-}
+import {Story} from '@/interfaces/story'
 
 const choiceCache = new NodeCache( { stdTTL: 120, checkperiod: 300 } );
 
@@ -21,8 +13,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<Story[]>
 ) {
-  if (req.method != 'GET'){
-    return res.status(404)
+  if (req.method != "GET") {
+    return res.status(404);
   }
   const statIndexMap = {
     'Gold': 0,
@@ -51,21 +43,23 @@ export default async function handler(
   const points = seedToChoices(seed)
   let stories:Story[] = new Array<Story>(5)
   const openai = new OpenAI();
-  await Promise.all(points.map(async (point, index) => {
-    let yesStat = ''
-    let noStat = ''
-    point.plus.forEach((stat) => {
-      yesStat += `+${point.stats[statIndexMap[stat]]} ${stat} `
-      noStat += `-${point.stats[statIndexMap[stat]]} ${stat} `
-    })
-    point.minus.forEach((stat) => {
-      yesStat += `-${point.stats[statIndexMap[stat]]} ${stat} `
-      noStat += `+${point.stats[statIndexMap[stat]]} ${stat} `
-    })
-    const response = await openai.chat.completions.create({
-      messages: [{
-        role:'system',
-        content: `You are a story writing agent for role-playing game. The player will be give the role of the citizen in the country. The country theme will be ${theme}. You will write short story for player to make decision with yes/no choice. Each story choice will affect the stat of the player country. The more value in each stat will mean that your country is better in that aspect. The stat will have as follow:
+  await Promise.all(
+    points.map(async (point, index) => {
+      let yesStat = "";
+      let noStat = "";
+      point.plus.forEach((stat) => {
+        yesStat += `+${point.stats[statIndexMap[stat]]} ${stat} `;
+        noStat += `-${point.stats[statIndexMap[stat]]} ${stat} `;
+      });
+      point.minus.forEach((stat) => {
+        yesStat += `-${point.stats[statIndexMap[stat]]} ${stat} `;
+        noStat += `+${point.stats[statIndexMap[stat]]} ${stat} `;
+      });
+      const response = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: `You are a story writing agent for role-playing game. The player will be give the role of the citizen in the country. The country theme will be ${theme}. You will write short story for player to make decision with yes/no choice. Each story choice will affect the stat of the player country. The more value in each stat will mean that your country is better in that aspect. The stat will have as follow:
         - Gold, is the stat of your country wealth
         - Science, is the stat of your country technology
         - Religion, is the stat of your country faith & religion
@@ -81,10 +75,11 @@ export default async function handler(
           - yes: yes choice outcome description
           - no: no choice outcome description
         }
-        do not try to beautify the json result`
-      },{
-        role: 'user',
-        content: `Please write a story that have a yes/no choice that will affect the stat of the player country as the following stat
+        do not try to beautify the json result`,
+          },
+          {
+            role: "user",
+            content: `Please write a story that have a yes/no choice that will affect the stat of the player country as the following stat
         - yes: ${yesStat}
         - no: ${noStat}`
       }],
