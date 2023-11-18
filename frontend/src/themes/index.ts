@@ -123,6 +123,7 @@ const theme = extendTheme({
     global: (_props: any) => ({
       body: {
         height: "100dvh",
+        width: "100vw",
         overflowX: "hidden",
         lineHeight: "base",
         backgroundPosition: "0 -10vh",
