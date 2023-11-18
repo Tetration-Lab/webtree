@@ -152,7 +152,10 @@ export const Game = () => {
             <Box boxSize="64px">
               <Lottie path="/icons/search.json" loop play />
             </Box>
-            <Text>Something unexpected is brewing.</Text>
+            <Text align="center">
+              As the morning unfolds, there's a vibe in the air. Big decisions
+              on the horizon, my friend. Get ready for some action!
+            </Text>
           </Stack>
         ) : (
           <>
@@ -165,7 +168,7 @@ export const Game = () => {
                 </>
               )}
             </Text>
-            {currentCardIndex <= cards.length && (
+            {currentCardIndex < cards.length && (
               <>
                 <Stack pos="relative" h="400px">
                   <Heading
