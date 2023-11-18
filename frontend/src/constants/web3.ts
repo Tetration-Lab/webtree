@@ -23,6 +23,7 @@ const metadata = {
 export const chains = [
   {
     ...scrollSepolia,
+    sn: "scroll",
     world: {
       name: "Scroll Land",
       description:
@@ -31,8 +32,9 @@ export const chains = [
   },
   {
     ...mantleTestnet,
+    sn: "mantle",
     world: {
-      contract: "0x4Cbed73A45ec4070B363b59958324532bac2f576",
+      contract: "0x27231Be30828D104e31a21222C81DFCF3fafBD20",
       name: "Mantle",
       description:
         "Mantle is a brillant futuristic world full of neon and plasma.",
@@ -40,6 +42,7 @@ export const chains = [
   },
   {
     ...polygonZkEvmTestnet,
+    sn: "polygon",
     world: {
       name: "Polygon",
       description: "Polygon is a fantasy world full of mystic wizards.",
@@ -47,6 +50,7 @@ export const chains = [
   },
   {
     ...baseSepolia,
+    sn: "base",
     world: {
       name: "Base",
       description:

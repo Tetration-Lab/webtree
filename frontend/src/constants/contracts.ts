@@ -31,4 +31,7 @@ export const WEBTREE_ABI = parseAbi([
   "function epochTime() view returns (uint256)",
   "function worldPublicKey() view returns (Affine)",
   "function action(Affine[] calldata _es, bytes calldata proof)",
+  "function sworld() view returns (uint256)",
+  "function esworld() view returns (CipherText)",
+  "function endEpoch(uint worldTreeLatest)",
 ]);

@@ -58,7 +58,7 @@ export const SelectServer = () => {
                 </Text>
               )}
               <Card
-                bgImg="/images/scroll/bg.jpg"
+                bgImg={`/images/${chain.sn}/bg.png`}
                 aspectRatio={3 / 2}
                 w="full"
                 bgPos="center"

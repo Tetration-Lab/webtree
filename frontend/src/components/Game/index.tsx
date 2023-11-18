@@ -1,4 +1,4 @@
-import { STATS } from "@/constants/stats";
+import { DEFAULT_STAT, STATS } from "@/constants/stats";
 import { seedToChoices } from "@/utils/seed";
 import {
   Box,
@@ -11,6 +11,7 @@ import {
   IconButton,
   Stack,
   Text,
+  useDisclosure,
   useToast,
 } from "@chakra-ui/react";
 import _ from "lodash";
@@ -20,7 +21,7 @@ import { Stat, statByIndex } from "@/interfaces/stats";
 import {
   useAccount,
   useChainId,
-  useContractRead,
+  useContractReads,
   useContractWrite,
   usePrepareContractWrite,
 } from "wagmi";
@@ -34,6 +35,8 @@ import { WEBTREE_ABI, getContract } from "@/constants/contracts";
 import { toHex } from "viem";
 import { useTransactionToast } from "@/hooks/useTransactionToast";
 import { usePlayer } from "@/stores/usePlayer";
+import { TutorialModal } from "../Modal/TutorialModal";
+import { decryptElgmal } from "@/utils/elgamal";
 
 export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   const chainId = useChainId();
@@ -57,7 +60,7 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
     ),
   });
 
-  const { player } = usePlayer();
+  const { player, key } = usePlayer();
   const { seed, prove, isProving, proof, reset: resetProof } = useProver();
   const { data: cards, isLoading } = useQuery<
     (Story & ReturnType<typeof seedToChoices>[number])[]
@@ -82,7 +85,9 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   });
 
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [stats, setStats] = useState(_.mapValues(STATS, (v) => v.default));
+  const [stats, setStats] = useState(
+    _.mapValues(STATS, (v) => v.default as number)
+  );
 
   const reset = () => {
     setChoices([]);
@@ -118,17 +123,37 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   const [swiped, setSwiped] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (currentCardIndex >= 5 && !proof && !isProving) {
-      prove(choices);
+    if (currentCardIndex >= 5 && !proof) {
+      prove(choices.slice(0).reverse());
     }
-  }, [proof, currentCardIndex, isProving]);
+  }, [proof, currentCardIndex]);
 
-  const { data: epoch } = useContractRead({
-    address: getContract(chainId),
-    abi: WEBTREE_ABI,
-    functionName: "epoch",
+  const { data: readDatas } = useContractReads({
     staleTime: 15000,
+    contracts: [
+      {
+        address: getContract(chainId),
+        abi: WEBTREE_ABI,
+        functionName: "epoch",
+      },
+
+      {
+        address: getContract(chainId),
+        abi: WEBTREE_ABI,
+        functionName: "sworld",
+      },
+    ],
   });
+  const epoch = readDatas?.[0]?.result;
+
+  useEffect(() => {
+    if (readDatas?.[1]?.result) {
+      setStats((e) => ({
+        ...e,
+        [Stat.Nature]: Number(readDatas[1].result),
+      }));
+    }
+  }, [readDatas?.[1]?.result]);
 
   const { address } = useAccount();
   const txToast = useTransactionToast();
@@ -153,8 +178,35 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
     },
   });
 
+  const tutorialModalDisclosure = useDisclosure();
+  useEffect(() => {
+    const g = async () => {
+      if (player && key) {
+        const decrpted = await decryptElgmal(
+          [player.es1, player.es2, player.es3],
+          key.raw
+        );
+        console.log(decrpted);
+        if (decrpted.every((v) => v === DEFAULT_STAT)) {
+          tutorialModalDisclosure.onOpen();
+        }
+        setStats((e) => ({
+          ...e,
+          [Stat.Gold]: decrpted[0],
+          [Stat.Science]: decrpted[1],
+          [Stat.Religion]: decrpted[2],
+        }));
+      }
+    };
+    g();
+  }, [player, key]);
+
   return (
     <>
+      <TutorialModal
+        isOpen={tutorialModalDisclosure.isOpen}
+        onClose={tutorialModalDisclosure.onClose}
+      />
       <HStack>
         {_.entries(STATS).map(([key, stat], i) => {
           const percent = _.clamp(
@@ -217,75 +269,78 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
           );
         })}
       </HStack>
-      <Stack minH="400px" pos="relative" justify="center">
-        {!cards || isLoading ? (
-          <Stack align="center">
-            <Box boxSize="64px">
-              <Lottie path="/icons/search.json" loop play />
-            </Box>
-            <Text align="center">
-              As the morning unfolds, there's a vibe in the air. Big decisions
-              on the horizon, my friend. Get ready for some action!
-            </Text>
-          </Stack>
-        ) : (
-          <>
-            <Text>
-              {currentCardIndex < cards.length && (
-                <>
-                  {currentCardIndex + 1} / {cards.length}
-                </>
-              )}
-            </Text>
-            <Stack pos="relative" h="400px" align="center">
-              {currentCardIndex < cards.length ? (
-                <>
-                  <Heading
-                    pos="absolute"
-                    left="200px"
-                    top="50%"
-                    transform="translateY(-100%)"
-                  >
-                    Yes
-                  </Heading>
-                  <Heading
-                    pos="absolute"
-                    right="200px"
-                    top="50%"
-                    transform="translateY(-100%)"
-                  >
-                    No
-                  </Heading>
-                  {_.reverse(cards).map((card, _i) => {
-                    const i = cards.length - _i - 1;
-                    return (
-                      <SwipableCard
-                        key={`${seed}${i}`}
-                        card={card}
-                        onSwipe={onSwipe}
-                        pointerEvents={i === currentCardIndex ? "auto" : "none"}
-                        zIndex={i}
-                      />
-                    );
-                  })}
-                </>
-              ) : (
-                <Stack h="100%" justify="center" align="center">
-                  {isProving && (
-                    <>
-                      <Box boxSize="32px">
-                        <Lottie path="/icons/target.json" loop play />
-                      </Box>
-                      <Heading fontSize={{ base: "md", md: "lg" }}>
-                        Generating Zero Knowledge Proof
-                      </Heading>
-                      <Facts />
-                    </>
-                  )}
-                  {proof &&
-                    player &&
-                    epoch &&
-                    player.lastActionEpoch < epoch && (
+      {epoch && player && player.lastActionEpoch < epoch && (
+        <Stack minH="400px" pos="relative" justify="center">
+          {!cards || isLoading ? (
+            <Stack align="center">
+              <Box boxSize="64px">
+                <Lottie path="/icons/search.json" loop play />
+              </Box>
+              <Text align="center">
+                As the morning unfolds, there's a vibe in the air. Big decisions
+                on the horizon, my friend. Get ready for some action!
+              </Text>
+            </Stack>
+          ) : (
+            <>
+              <Text>
+                {currentCardIndex < cards.length && (
+                  <>
+                    {currentCardIndex + 1} / {cards.length}
+                  </>
+                )}
+              </Text>
+              <Stack pos="relative" h="400px" align="center">
+                {currentCardIndex < cards.length ? (
+                  <>
+                    <Heading
+                      pos="absolute"
+                      left="200px"
+                      top="50%"
+                      transform="translateY(-100%)"
+                    >
+                      Yes
+                    </Heading>
+                    <Heading
+                      pos="absolute"
+                      right="200px"
+                      top="50%"
+                      transform="translateY(-100%)"
+                    >
+                      No
+                    </Heading>
+                    {cards
+                      .slice(0)
+                      .reverse()
+                      .map((card, index) => {
+                        const i = cards.length - index - 1;
+                        return (
+                          <SwipableCard
+                            key={`${seed}${i}`}
+                            card={card}
+                            onSwipe={onSwipe}
+                            pointerEvents={
+                              i === currentCardIndex ? "auto" : "none"
+                            }
+                            zIndex={i}
+                          />
+                        );
+                      })}
+                  </>
+                ) : (
+                  <Stack h="100%" justify="center" align="center">
+                    {isProving && (
+                      <>
+                        <Box boxSize="32px">
+                          <Lottie path="/icons/target.json" loop play />
+                        </Box>
+                        <Heading fontSize={{ base: "md", md: "lg" }}>
+                          Generating Zero Knowledge Proof
+                        </Heading>
+                        <Facts />
+                      </>
+                    )}
+                    {proof && !isProving && (
                       <>
                         <Box boxSize="32px">
                           <Lottie path="/icons/target.json" loop play />
@@ -305,12 +360,13 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
                         </Button>
                       </>
                     )}
-                </Stack>
-              )}
-            </Stack>
-          </>
-        )}
-      </Stack>
+                  </Stack>
+                )}
+              </Stack>
+            </>
+          )}
+        </Stack>
+      )}
     </>
   );
 };
