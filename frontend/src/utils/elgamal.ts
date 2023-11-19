@@ -19,21 +19,17 @@ export const decryptElgmal = async (
 
   const now = _.now();
   const res = ciphertexts.map((ciphertext) => {
-    const s = babyjub.mulPointEscalar(
-      [
-        babyjub.F.fromObject(ciphertext.c1.x),
-        babyjub.F.fromObject(ciphertext.c1.y),
-      ],
-      privateKey
-    );
+    const c1 = [
+      babyjub.F.fromObject(ciphertext.c1.x),
+      babyjub.F.fromObject(ciphertext.c1.y),
+    ] as Point;
+    const c2 = [
+      babyjub.F.fromObject(ciphertext.c2.x),
+      babyjub.F.fromObject(ciphertext.c2.y),
+    ] as Point;
+    const s = babyjub.mulPointEscalar(c1, privateKey);
     const negS = [babyjub.F.neg(s[0]), s[1]];
-    const m = babyjub.addPoint(
-      [
-        babyjub.F.fromObject(ciphertext.c2.x),
-        babyjub.F.fromObject(ciphertext.c2.y),
-      ],
-      negS as Point
-    );
+    const m = babyjub.addPoint(c2, negS as Point);
 
     return map.get(toHex(babyjub.packPoint(m))) ?? 0;
   });

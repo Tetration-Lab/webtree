@@ -21,6 +21,10 @@ export default async function handler(
 ) {
   const privateKey = process.env.BACKEND_SK;
   if (!privateKey) throw new Error("BACKEND_SK is not set");
+  const pw = process.env.PW;
+  if (!pw) throw new Error("PW is not set");
+  const parsedPw = req.query.pw;
+  if (parsedPw !== pw) throw new Error("PW is not correct");
   const account = privateKeyToAccount(privateKey as Hex);
   const chainId: number = parseInt(req.query.chainId as string);
   const chain = getChain(chainId);
@@ -41,16 +45,17 @@ export default async function handler(
     address: contract,
     functionName: "esworld",
   });
-  console.log("account", account.address);
-  console.log("esworld", esworld);
+  //console.log("account", account.address);
+  //console.log("esworld", esworld);
   const babyjubjub = await buildBabyjub();
   const sk = fromHex(privateKey as Hex, "bigint") % babyjubjub.order;
-  const pk = babyjubjub.mulPointEscalar(babyjubjub.Base8, sk);
-  console.log(
-    "pk",
-    `0x${babyjubjub.F.toString(pk[0], 16)}`,
-    `0x${babyjubjub.F.toString(pk[1], 16)}`
-  );
+  //console.log("sk", sk);
+  //const pk = babyjubjub.mulPointEscalar(babyjubjub.Base8, toHex(sk));
+  //console.log(
+  //"pk",
+  //`0x${babyjubjub.F.toString(pk[0], 16)}`,
+  //`0x${babyjubjub.F.toString(pk[1], 16)}`
+  //);
   const decrypted = await decryptElgmal([esworld], toHex(sk));
   console.log("decrypted", decrypted);
 
