@@ -222,7 +222,7 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
       <DruidChat
         toggleDonation={donateModalDisclosure.onToggle}
         bottom={0}
-        left={0}
+        right={0}
       />
       <DonateModal
         isOpen={donateModalDisclosure.isOpen}
