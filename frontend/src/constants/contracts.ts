@@ -35,4 +35,6 @@ export const WEBTREE_ABI = parseAbi([
   "function esworld() view returns (CipherText)",
   "function endEpoch(uint worldTreeLatest)",
   "function donate() payable",
+  "function druidAct(uint256 spend, uint256 _sworld)",
+  "function druid() view returns (uint256 balance, uint256 spent, uint256 actions)",
 ]);

@@ -2,7 +2,19 @@
   "crons": [
     {
       "path": "/api/epoch?chainId=5001",
-      "schedule": "*/6 * * * *"
+      "schedule": "*/7 * * * *"
+    },
+    {
+      "path": "/api/epoch?chainId=84532",
+      "schedule": "*/7 * * * *"
+    },
+    {
+      "path": "/api/druid?chainId=5001",
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/druid?chainId=84532",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

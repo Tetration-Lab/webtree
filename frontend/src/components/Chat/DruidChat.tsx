@@ -1,6 +1,9 @@
 import {
   Box,
   Card,
+  HStack,
+  Icon,
+  IconButton,
   Img,
   Input,
   Stack,
@@ -9,12 +12,16 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { FaMoneyBill } from "react-icons/fa6";
 
 interface DruidChat {
   text: string;
 }
 
-export const DruidChat = ({ ...props }: StackProps) => {
+export const DruidChat = ({
+  toggleDonation,
+  ...props
+}: { toggleDonation: () => void } & StackProps) => {
   const [isThinking, setIsThinking] = useState(false);
   const [response, setResponse] = useState<string | null>("wassup");
   const { register, handleSubmit, reset } = useForm<DruidChat>();
@@ -37,7 +44,7 @@ export const DruidChat = ({ ...props }: StackProps) => {
 
   return (
     <Stack pos="absolute" overflowY="hidden" {...props}>
-      <Box transform="translate(-40%, 20%)" pos="relative">
+      <Box transform="translate(-20%, 20%)" pos="relative">
         <Img src="/images/druid.png" />
       </Box>
       {(response || isThinking) && (
@@ -62,12 +69,19 @@ export const DruidChat = ({ ...props }: StackProps) => {
         roundedBottom="none"
       >
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Input
-            {...register("text")}
-            placeholder="Chitchat with the druid!"
-            border="none"
-            bg="gray.600"
-          />
+          <HStack>
+            <Input
+              {...register("text")}
+              placeholder="Chitchat with the druid!"
+              border="none"
+              bg="gray.600"
+            />
+            <IconButton
+              icon={<Icon as={FaMoneyBill} />}
+              aria-label="donate"
+              onClick={toggleDonation}
+            />
+          </HStack>
         </form>
       </Card>
     </Stack>

@@ -219,7 +219,11 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
 
   return (
     <>
-      <DruidChat bottom={0} left={0} />
+      <DruidChat
+        toggleDonation={donateModalDisclosure.onToggle}
+        bottom={0}
+        left={0}
+      />
       <DonateModal
         isOpen={donateModalDisclosure.isOpen}
         onClose={donateModalDisclosure.onClose}

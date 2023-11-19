@@ -5,12 +5,7 @@ import { createWeb3Modal } from "@web3modal/wagmi";
 import { DESCRIPTION, TITLE } from "./texts";
 import theme from "@/themes";
 import { publicProvider } from "wagmi/providers/public";
-import {
-  baseSepolia,
-  mantleTestnet,
-  polygonZkEvmTestnet,
-  scrollSepolia,
-} from "viem/chains";
+import { baseSepolia, mantleTestnet } from "viem/chains";
 import { Address, Hex } from "viem";
 
 const metadata = {
@@ -21,15 +16,15 @@ const metadata = {
 };
 
 export const chains = [
-  {
-    ...scrollSepolia,
-    sn: "scroll",
-    world: {
-      name: "Scroll Land",
-      description:
-        "Scroll land is a medieval world full of scrolls and path of truths.",
-    },
-  },
+  //{
+  //...scrollSepolia,
+  //sn: "scroll",
+  //world: {
+  //name: "Scroll Land",
+  //description:
+  //"Scroll land is a medieval world full of scrolls and path of truths.",
+  //},
+  //},
   {
     ...mantleTestnet,
     sn: "mantle",
@@ -40,18 +35,19 @@ export const chains = [
         "Mantle is a brillant futuristic world full of neon and plasma.",
     },
   },
-  {
-    ...polygonZkEvmTestnet,
-    sn: "polygon",
-    world: {
-      name: "Polygon",
-      description: "Polygon is a fantasy world full of mystic wizards.",
-    },
-  },
+  //{
+  //...polygonZkEvmTestnet,
+  //sn: "polygon",
+  //world: {
+  //name: "Polygon",
+  //description: "Polygon is a fantasy world full of mystic wizards.",
+  //},
+  //},
   {
     ...baseSepolia,
     sn: "base",
     world: {
+      contract: "0xD9C991abE7d27f68FC66aB2272b9d64f7568dD39",
       name: "Base",
       description:
         "Base is a world of the moonlight, full of elfs and a majestic world tree.",
