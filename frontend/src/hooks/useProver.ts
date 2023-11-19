@@ -28,6 +28,7 @@ export const useProver = () => {
   const chainId = useChainId();
   const contract = getContract(chainId);
   const { data, isLoading } = useContractReads({
+    staleTime: 15000,
     contracts: [
       {
         address: contract,
@@ -41,6 +42,13 @@ export const useProver = () => {
       },
     ],
   });
+
+  const [epochTime, setEpochTime] = useState<number | null>(null);
+  useEffect(() => {
+    if (data?.[0]?.result && epochTime !== Number(data[0].result)) {
+      setEpochTime(Number(data[0].result));
+    }
+  }, [data?.[0]?.result, epochTime]);
 
   const [seed, setSeed] = useState<Hex | null>(null);
   useEffect(() => {
@@ -130,7 +138,7 @@ export const useProver = () => {
     proof,
     prove,
     isLoading,
-    epochSeed: data?.[0]?.result,
+    epochTime,
     seed,
     reset,
   };

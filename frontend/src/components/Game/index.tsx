@@ -61,7 +61,14 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   });
 
   const { player, key } = usePlayer();
-  const { seed, prove, isProving, proof, reset: resetProof } = useProver();
+  const {
+    seed,
+    prove,
+    isProving,
+    proof,
+    reset: resetProof,
+    epochTime,
+  } = useProver();
   const { data: cards, isLoading } = useQuery<
     (Story & ReturnType<typeof seedToChoices>[number])[]
   >({
@@ -94,6 +101,12 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
     setCurrentCardIndex(0);
     resetProof();
   };
+
+  useEffect(() => {
+    if (epochTime !== null) {
+      reset();
+    }
+  }, [epochTime]);
 
   const [choices, setChoices] = useState<boolean[]>([]);
   const onSwipe = useCallback(
@@ -186,7 +199,6 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
           [player.es1, player.es2, player.es3],
           key.raw
         );
-        console.log(decrpted);
         if (decrpted.every((v) => v === DEFAULT_STAT)) {
           tutorialModalDisclosure.onOpen();
         }
