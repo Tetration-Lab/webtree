@@ -114,7 +114,6 @@ export const useProver = () => {
             })
           ),
         });
-        console.log("verified", await noir.verifyFinalProof(proof));
         console.log("proof", proof);
         console.log(
           "public inputs",

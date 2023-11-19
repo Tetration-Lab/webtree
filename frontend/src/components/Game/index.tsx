@@ -37,6 +37,8 @@ import { useTransactionToast } from "@/hooks/useTransactionToast";
 import { usePlayer } from "@/stores/usePlayer";
 import { TutorialModal } from "../Modal/TutorialModal";
 import { decryptElgmal } from "@/utils/elgamal";
+import { DonateModal } from "../Modal/DonateModal";
+import { DruidChat } from "../Chat/DruidChat";
 
 export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   const chainId = useChainId();
@@ -192,6 +194,8 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
   });
 
   const tutorialModalDisclosure = useDisclosure();
+  const donateModalDisclosure = useDisclosure();
+
   useEffect(() => {
     const g = async () => {
       if (player && key) {
@@ -215,6 +219,11 @@ export const Game = ({ toggleQuery }: { toggleQuery: () => void }) => {
 
   return (
     <>
+      <DruidChat bottom={0} left={0} />
+      <DonateModal
+        isOpen={donateModalDisclosure.isOpen}
+        onClose={donateModalDisclosure.onClose}
+      />
       <TutorialModal
         isOpen={tutorialModalDisclosure.isOpen}
         onClose={tutorialModalDisclosure.onClose}

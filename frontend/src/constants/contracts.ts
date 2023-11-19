@@ -34,4 +34,5 @@ export const WEBTREE_ABI = parseAbi([
   "function sworld() view returns (uint256)",
   "function esworld() view returns (CipherText)",
   "function endEpoch(uint worldTreeLatest)",
+  "function donate() payable",
 ]);

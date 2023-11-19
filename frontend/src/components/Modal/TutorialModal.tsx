@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { TUTORIAL } from "@/constants/tutorial";
 import _ from "lodash";
 import { FaX } from "react-icons/fa6";
+import { MotionBox } from "../MotionBox";
 
 export const TutorialModal = ({
   isOpen,
@@ -49,21 +50,20 @@ export const TutorialModal = ({
   const onSwipe = useCallback(
     (isYes: boolean) => {
       const card = TUTORIAL[currentCardIndex];
-      setSwiped(isYes);
       toast.closeAll();
       toast({
         title: card.title,
         description: isYes ? card.yes : card.no,
       });
       setTimeout(() => {
-        setSwiped(false);
         setCurrentCardIndex((i) => i + 1);
       }, 1000);
     },
     [TUTORIAL, currentCardIndex]
   );
-  const [swiped, setSwiped] = useState<boolean>(false);
+  const [showDruid, setShowDruid] = useState<boolean>(false);
   useEffect(() => {
+    if (currentCardIndex === TUTORIAL.length - 1) setShowDruid(true);
     if (currentCardIndex >= TUTORIAL.length) {
       onClose();
     }
@@ -78,7 +78,27 @@ export const TutorialModal = ({
       closeOnEsc={false}
     >
       <ModalOverlay backdropFilter="blur(6px)" />
-      <ModalContent bg="transparent" shadow="none" as={Stack} align="center">
+      <ModalContent
+        bg="transparent"
+        shadow="none"
+        as={Stack}
+        align="center"
+        pos="relative"
+      >
+        <MotionBox
+          pos="absolute"
+          h="500px"
+          w="100%"
+          initial={{
+            left: "150%",
+          }}
+          animate={{
+            left: showDruid ? "110%" : "1000%",
+            transform: showDruid ? "rotate(-30deg)" : "rotate(0deg)",
+          }}
+          bgImg="/images/druid.png"
+          bgSize="cover"
+        />
         <HStack justify="center">
           <Heading>Tutorial</Heading>
         </HStack>
