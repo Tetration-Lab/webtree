@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/epoch?chainId=5001",
+      "schedule": "*/6 * * * *"
+    }
+  ]
+}

@@ -21,10 +21,19 @@ export default async function handler(
 ) {
   const privateKey = process.env.BACKEND_SK;
   if (!privateKey) throw new Error("BACKEND_SK is not set");
+
   const pw = process.env.PW;
   if (!pw) throw new Error("PW is not set");
+
   const parsedPw = req.query.pw;
-  if (parsedPw !== pw) throw new Error("PW is not correct");
+  if (
+    !(
+      parsedPw === pw ||
+      req.headers.authorization !== `Bearer ${process.env.CRON_SECRET}`
+    )
+  )
+    throw new Error("Insufficient auth");
+
   const account = privateKeyToAccount(privateKey as Hex);
   const chainId: number = parseInt(req.query.chainId as string);
   const chain = getChain(chainId);
