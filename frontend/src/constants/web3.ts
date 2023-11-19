@@ -34,7 +34,7 @@ export const chains = [
     ...mantleTestnet,
     sn: "mantle",
     world: {
-      contract: "0x27231Be30828D104e31a21222C81DFCF3fafBD20",
+      contract: "0x1663A07ebB38988aA2CC8586D54D169E934F8aC2",
       name: "Mantle",
       description:
         "Mantle is a brillant futuristic world full of neon and plasma.",

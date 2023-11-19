@@ -45,29 +45,20 @@ export default async function handler(
     address: contract,
     functionName: "esworld",
   });
-  //console.log("account", account.address);
-  //console.log("esworld", esworld);
   const babyjubjub = await buildBabyjub();
   const sk = fromHex(privateKey as Hex, "bigint") % babyjubjub.order;
-  //console.log("sk", sk);
-  //const pk = babyjubjub.mulPointEscalar(babyjubjub.Base8, toHex(sk));
-  //console.log(
-  //"pk",
-  //`0x${babyjubjub.F.toString(pk[0], 16)}`,
-  //`0x${babyjubjub.F.toString(pk[1], 16)}`
-  //);
-  const decrypted = await decryptElgmal([esworld], toHex(sk));
+  const decrypted = await decryptElgmal([esworld], toHex(sk), 10000);
   console.log("decrypted", decrypted);
 
-  //const tx = await wallet.writeContract({
-  //abi: WEBTREE_ABI,
-  //address: contract,
-  //functionName: "endEpoch",
-  //args: [BigInt(decrypted[0])],
-  //});
-  //const receipt = await provider.waitForTransactionReceipt({ hash: tx });
-  //if (receipt.status !== "success") throw new Error("transaction failed");
-  //console.log("receipt", receipt);
+  const tx = await wallet.writeContract({
+    abi: WEBTREE_ABI,
+    address: contract,
+    functionName: "endEpoch",
+    args: [BigInt(decrypted[0])],
+  });
+  const receipt = await provider.waitForTransactionReceipt({ hash: tx });
+  if (receipt.status !== "success") throw new Error("transaction failed");
+  console.log("receipt", receipt);
 
   res.status(200).json({ status: "OK" });
 }

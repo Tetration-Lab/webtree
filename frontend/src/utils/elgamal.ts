@@ -1,7 +1,11 @@
 import { CipherText } from "@/interfaces/user";
-import { Point, buildBabyjub } from "circomlibjs";
+import { Point, buildBabyjub, BabyJub } from "circomlibjs";
 import _ from "lodash";
 import { Hex, toHex } from "viem";
+
+const packPoint = (bjj: BabyJub, point: Point): Hex => {
+  return toHex(bjj.packPoint(point));
+};
 
 export const decryptElgmal = async (
   ciphertexts: CipherText[],
@@ -10,10 +14,11 @@ export const decryptElgmal = async (
 ): Promise<number[]> => {
   const babyjub = await buildBabyjub();
 
-  let prev = babyjub.Generator;
   const map = new Map<Hex, number>();
+
+  let prev = babyjub.Generator;
   _.range(1, limit ?? 4000).forEach((i) => {
-    map.set(toHex(babyjub.packPoint(prev)), i);
+    map.set(packPoint(babyjub, prev), i);
     prev = babyjub.addPoint(babyjub.Generator, prev);
   });
 
